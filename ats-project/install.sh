@@ -96,9 +96,9 @@ info "Installazione dipendenze frontend…"
 cd "$SCRIPT_DIR/frontend"
 npm install --silent
 
-# .env frontend (punta al backend locale)
+# In produzione nginx fa da proxy su /api/ — URL relativo, nessun valore
 cat > "$SCRIPT_DIR/frontend/.env" <<EOF
-VITE_API_URL=http://localhost:${BACKEND_PORT}
+VITE_API_URL=
 EOF
 
 info "Build frontend in produzione…"

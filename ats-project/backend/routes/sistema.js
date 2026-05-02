@@ -4,6 +4,7 @@ import { promisify } from 'util';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import pool from '../db.js';
 
 const router = Router();
 const esegui = promisify(exec);
@@ -36,6 +37,16 @@ async function branchCorrente() {
   return stdout.trim();
 }
 
+// GET /api/sistema/stato — verifica connessione al database
+router.get('/stato', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ db: 'connesso' });
+  } catch (err) {
+    res.status(503).json({ db: 'errore', dettaglio: err.message });
+  }
+});
+
 // GET /api/sistema/versione — stato attuale e disponibilità aggiornamento
 router.get('/versione', async (req, res) => {
   try {
@@ -61,7 +72,6 @@ router.get('/versione', async (req, res) => {
 
 // POST /api/sistema/aggiorna — esegue pull da main, reinstalla dipendenze, ricostruisce frontend
 router.post('/aggiorna', async (req, res) => {
-  // Risponde subito: l'aggiornamento procede in background
   res.json({ messaggio: 'Aggiornamento avviato. Il servizio si riavvierà a breve.' });
 
   try {
@@ -73,7 +83,6 @@ router.post('/aggiorna', async (req, res) => {
       cwd: path.join(ROOT, 'frontend'),
       env: { ...process.env, NODE_ENV: 'production' },
     });
-    // Riavvio tramite systemd (se disponibile), altrimenti esce e lascia che il processo manager rilanci
     esegui('systemctl restart ats-backend').catch(() => process.exit(0));
   } catch (err) {
     console.error('[aggiornamento] Errore:', err.message);
