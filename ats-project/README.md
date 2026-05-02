@@ -41,6 +41,12 @@ DB_USER=ats_user
 DB_PASSWORD=la_tua_password
 ```
 
+## Variabili d'Ambiente (frontend/.env)
+
+```env
+VITE_API_URL=http://localhost:3001
+```
+
 ## Avvio
 
 ```bash
