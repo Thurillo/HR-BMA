@@ -56,6 +56,14 @@ npm run dev
 Frontend: http://localhost:5173  
 Backend API: http://localhost:3001
 
+## API Endpoints
+
+| Metodo | Percorso | Descrizione |
+|--------|----------|-------------|
+| GET | `/api/candidates` | Recupera tutti i candidati |
+| PUT | `/api/candidates/:id/status` | Aggiorna stato Kanban |
+| POST | `/api/candidates` | Inserimento da n8n (campi extra → `extra_data`) |
+
 ## Schema Database
 
 Vedi `database/schema.sql` per lo script di creazione tabelle.
