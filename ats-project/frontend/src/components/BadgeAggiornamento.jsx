@@ -1,13 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-const INTERVALLO_MS = 5 * 60 * 1000; // controlla ogni 5 minuti
 
 export default function BadgeAggiornamento() {
-  const [stato, setStato] = useState(null);   // null | oggetto versione
+  const [stato, setStato] = useState(null);
   const [fase, setFase] = useState('inattivo'); // 'inattivo' | 'verifica' | 'aggiornamento' | 'errore'
 
-  const verificaAggiornamenti = useCallback(async () => {
+  async function verificaAggiornamenti() {
     setFase('verifica');
     try {
       const res = await fetch(`${BASE_URL}/api/sistema/versione`);
@@ -16,15 +15,10 @@ export default function BadgeAggiornamento() {
       setStato(dati);
       setFase('inattivo');
     } catch {
+      setStato(null);
       setFase('errore');
     }
-  }, []);
-
-  useEffect(() => {
-    verificaAggiornamenti();
-    const timer = setInterval(verificaAggiornamenti, INTERVALLO_MS);
-    return () => clearInterval(timer);
-  }, [verificaAggiornamenti]);
+  }
 
   async function avviaAggiornamento() {
     if (!confirm('Avviare l\'aggiornamento? Il servizio si riavvierà automaticamente.')) return;
@@ -52,7 +46,7 @@ export default function BadgeAggiornamento() {
     }
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Aggiornamento in corso ─────────────────────────────────────────────────
   if (fase === 'aggiornamento') {
     return (
       <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 animate-pulse">
@@ -65,6 +59,7 @@ export default function BadgeAggiornamento() {
     );
   }
 
+  // ── Aggiornamento disponibile ──────────────────────────────────────────────
   if (stato?.aggiornamento_disponibile) {
     return (
       <div className="flex items-center gap-2">
@@ -85,21 +80,41 @@ export default function BadgeAggiornamento() {
     );
   }
 
+  // ── Già aggiornato ─────────────────────────────────────────────────────────
   if (stato && !stato.aggiornamento_disponibile) {
     return (
-      <div className="flex items-center gap-1.5 text-xs text-slate-400">
-        <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
-        </svg>
-        v{stato.versione} · aggiornato
-        <button onClick={verificaAggiornamenti} className="ml-1 hover:text-slate-600 transition" title="Verifica aggiornamenti">
-          <svg className={`w-3 h-3 ${fase === 'verifica' ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+          v{stato.versione} · aggiornato
+        </div>
+        <button
+          onClick={verificaAggiornamenti}
+          disabled={fase === 'verifica'}
+          className="flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-300 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition disabled:opacity-50"
+        >
+          <svg className={`w-3.5 h-3.5 ${fase === 'verifica' ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 104.583 9.065"/>
           </svg>
+          Controlla versione
         </button>
       </div>
     );
   }
 
-  return null;
+  // ── Stato iniziale / errore ────────────────────────────────────────────────
+  return (
+    <button
+      onClick={verificaAggiornamenti}
+      disabled={fase === 'verifica'}
+      className="flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-300 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition disabled:opacity-50"
+    >
+      <svg className={`w-3.5 h-3.5 ${fase === 'verifica' ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 104.583 9.065"/>
+      </svg>
+      {fase === 'errore' ? 'Errore — riprova' : 'Controlla versione'}
+    </button>
+  );
 }
