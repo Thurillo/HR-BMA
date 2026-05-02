@@ -9,6 +9,7 @@ const router = Router();
 const esegui = promisify(exec);
 
 const ROOT = path.resolve(fileURLToPath(import.meta.url), '../../../');
+const BRANCH_AGGIORNAMENTO = 'main';
 
 async function leggiVersione() {
   try {
@@ -38,16 +39,17 @@ async function branchCorrente() {
 // GET /api/sistema/versione — stato attuale e disponibilità aggiornamento
 router.get('/versione', async (req, res) => {
   try {
-    const branch = await branchCorrente();
-    const [versione, locale, remoto] = await Promise.all([
+    const [versione, locale, remoto, branchAttuale] = await Promise.all([
       leggiVersione(),
       commitLocale(),
-      commitRemoto(branch),
+      commitRemoto(BRANCH_AGGIORNAMENTO),
+      branchCorrente(),
     ]);
 
     res.json({
       versione,
-      branch,
+      branch_locale: branchAttuale,
+      branch_aggiornamento: BRANCH_AGGIORNAMENTO,
       commit_locale: locale.slice(0, 7),
       commit_remoto: remoto.slice(0, 7),
       aggiornamento_disponibile: locale !== remoto,
@@ -57,13 +59,15 @@ router.get('/versione', async (req, res) => {
   }
 });
 
-// POST /api/sistema/aggiorna — esegue pull, reinstalla dipendenze, ricostruisce frontend
+// POST /api/sistema/aggiorna — esegue pull da main, reinstalla dipendenze, ricostruisce frontend
 router.post('/aggiorna', async (req, res) => {
   // Risponde subito: l'aggiornamento procede in background
   res.json({ messaggio: 'Aggiornamento avviato. Il servizio si riavvierà a breve.' });
 
   try {
-    await esegui('git pull', { cwd: ROOT });
+    await esegui(`git fetch origin ${BRANCH_AGGIORNAMENTO} --quiet`, { cwd: ROOT });
+    await esegui(`git checkout ${BRANCH_AGGIORNAMENTO}`, { cwd: ROOT });
+    await esegui(`git reset --hard origin/${BRANCH_AGGIORNAMENTO}`, { cwd: ROOT });
     await esegui('npm install --omit=dev --silent', { cwd: path.join(ROOT, 'backend') });
     await esegui('npm install --silent && npm run build', {
       cwd: path.join(ROOT, 'frontend'),
