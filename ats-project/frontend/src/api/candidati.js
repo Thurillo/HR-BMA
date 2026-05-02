@@ -15,3 +15,16 @@ export async function aggiornaStatus(id, status) {
   if (!res.ok) throw new Error('Errore aggiornamento stato');
   return res.json();
 }
+
+export async function aggiornaAnagrafica(id, dati) {
+  const res = await fetch(`${BASE_URL}/api/candidates/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dati),
+  });
+  if (!res.ok) {
+    const corpo = await res.json().catch(() => ({}));
+    throw new Error(corpo.errore || 'Errore salvataggio anagrafica');
+  }
+  return res.json();
+}

@@ -65,6 +65,47 @@ app.put('/api/candidates/:id/status', async (req, res) => {
   }
 });
 
+// PUT /api/candidates/:id — aggiorna l'anagrafica completa di un candidato
+app.put('/api/candidates/:id', async (req, res) => {
+  const { id } = req.params;
+  const payload = req.body;
+
+  const CAMPI_SOLA_LETTURA = new Set(['id', 'created_at', 'updated_at']);
+  const aggiornamenti = {};
+
+  for (const [chiave, valore] of Object.entries(payload)) {
+    if (CAMPI_SOLA_LETTURA.has(chiave)) continue;
+    if (!CAMPI_TABELLA.has(chiave)) continue;
+    aggiornamenti[chiave] = typeof valore === 'object' && valore !== null
+      ? JSON.stringify(valore)
+      : valore;
+  }
+
+  if (Object.keys(aggiornamenti).length === 0) {
+    return res.status(400).json({ errore: 'Nessun campo valido da aggiornare' });
+  }
+
+  const set = Object.keys(aggiornamenti).map(k => `${k} = ?`).join(', ');
+  const valori = [...Object.values(aggiornamenti), id];
+
+  try {
+    const [result] = await pool.query(
+      `UPDATE candidates SET ${set} WHERE id = ?`,
+      valori
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ errore: 'Candidato non trovato' });
+    }
+    const [[candidato]] = await pool.query('SELECT * FROM candidates WHERE id = ?', [id]);
+    res.json(candidato);
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ errore: 'Email già in uso da un altro candidato' });
+    }
+    res.status(500).json({ errore: 'Errore aggiornamento anagrafica', dettaglio: err.message });
+  }
+});
+
 // POST /api/candidates — ricezione dati da n8n
 // I campi noti vanno nelle colonne dedicate; tutto il resto finisce in extra_data
 app.post('/api/candidates', async (req, res) => {

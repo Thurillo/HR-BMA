@@ -83,6 +83,10 @@ export default function KanbanBoard() {
         <DettagliModale
           candidato={candidatoSelezionato}
           onChiudi={() => setCandidatoSelezionato(null)}
+          onAggiornato={(aggiornato) => {
+            setCandidati(prev => prev.map(c => c.id === aggiornato.id ? aggiornato : c));
+            setCandidatoSelezionato(aggiornato);
+          }}
         />
       )}
     </>
