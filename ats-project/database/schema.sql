@@ -1,7 +1,9 @@
 -- ATS HR Custom — Schema Database
 -- Eseguire sul database: ats_database
 
-CREATE TABLE IF NOT EXISTS `candidates` (
+DROP TABLE IF EXISTS `candidates`;
+
+CREATE TABLE `candidates` (
   `id`                INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   `first_name`        VARCHAR(100)    NOT NULL,
   `last_name`         VARCHAR(100)    NOT NULL,
@@ -13,6 +15,19 @@ CREATE TABLE IF NOT EXISTS `candidates` (
   `max_education`     VARCHAR(255)        NULL,
   `executive_summary` TEXT                NULL,
   `file_path_smb`     VARCHAR(500)        NULL,
+  -- Profilo esteso
+  `linkedin_url`      VARCHAR(255)        NULL,
+  `portfolio_url`     VARCHAR(255)        NULL,
+  `seniority`         VARCHAR(50)         NULL,
+  `settore_prevalente`VARCHAR(150)        NULL,
+  `hard_skills`       JSON                NULL,
+  `soft_skills`       JSON                NULL,
+  `ambito_studi`      VARCHAR(150)        NULL,
+  `universita`        VARCHAR(150)        NULL,
+  `certificazioni`    JSON                NULL,
+  `preavviso`         VARCHAR(50)         NULL,
+  `ral_indicata`      VARCHAR(50)         NULL,
+  `modalita_lavoro`   VARCHAR(50)         NULL,
   -- Logica Kanban
   `status`            ENUM(
                         'Nuovo',
