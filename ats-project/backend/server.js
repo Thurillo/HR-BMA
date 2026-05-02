@@ -1,13 +1,12 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import mysql from 'mysql2/promise';
+import pool from './db.js';
 import sistemaRouter from './routes/sistema.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Campi colonna della tabella candidates (tutti tranne id, created_at, updated_at)
 const CAMPI_TABELLA = new Set([
   'first_name', 'last_name', 'email', 'phone', 'location',
   'current_role', 'years_experience', 'max_education', 'executive_summary',
@@ -16,16 +15,6 @@ const CAMPI_TABELLA = new Set([
   'universita', 'certificazioni', 'preavviso', 'ral_indicata',
   'modalita_lavoro', 'status', 'macro_sector', 'extra_data',
 ]);
-
-const pool = mysql.createPool({
-  host:     process.env.DB_HOST,
-  port:     process.env.DB_PORT || 3306,
-  database: process.env.DB_NAME,
-  user:     process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  waitForConnections: true,
-  connectionLimit: 10,
-});
 
 app.use(cors());
 app.use(express.json());
@@ -109,7 +98,6 @@ app.put('/api/candidates/:id', async (req, res) => {
 });
 
 // POST /api/candidates — ricezione dati da n8n
-// I campi noti vanno nelle colonne dedicate; tutto il resto finisce in extra_data
 app.post('/api/candidates', async (req, res) => {
   const payload = req.body;
 
@@ -117,16 +105,14 @@ app.post('/api/candidates', async (req, res) => {
   const campiExtra = {};
 
   for (const [chiave, valore] of Object.entries(payload)) {
-    if (chiave === 'extra_data') continue; // ignorato: gestiamo noi l'aggregazione
+    if (chiave === 'extra_data') continue;
     if (CAMPI_TABELLA.has(chiave)) {
-      // I campi JSON vanno serializzati se arrivano come stringa
       campiStandard[chiave] = typeof valore === 'object' ? JSON.stringify(valore) : valore;
     } else {
       campiExtra[chiave] = valore;
     }
   }
 
-  // Aggiunge extra_data solo se ci sono campi non mappati
   if (Object.keys(campiExtra).length > 0) {
     campiStandard.extra_data = JSON.stringify(campiExtra);
   }
@@ -146,7 +132,6 @@ app.post('/api/candidates', async (req, res) => {
     );
     res.status(201).json({ messaggio: 'Candidato inserito con successo', id: result.insertId });
   } catch (err) {
-    // Duplicato email
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ errore: 'Candidato già presente (email duplicata)' });
     }

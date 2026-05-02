@@ -1,5 +1,6 @@
 import KanbanBoard from './components/KanbanBoard';
 import BadgeAggiornamento from './components/BadgeAggiornamento';
+import StatoDB from './components/StatoDB';
 
 export default function App() {
   return (
@@ -15,7 +16,10 @@ export default function App() {
             <p className="text-xs text-slate-400 mt-0.5">Gestione selezione del personale</p>
           </div>
         </div>
-        <BadgeAggiornamento />
+        <div className="flex items-center gap-4">
+          <StatoDB />
+          <BadgeAggiornamento />
+        </div>
       </header>
 
       {/* Board */}
