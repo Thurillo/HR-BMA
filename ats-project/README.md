@@ -240,7 +240,10 @@ I campi principali della tabella `candidates`:
 |--------|----------|-------------|
 | `GET` | `/api/candidates` | Recupera tutti i candidati |
 | `PUT` | `/api/candidates/:id/status` | Aggiorna lo stato Kanban |
+| `PUT` | `/api/candidates/:id` | Aggiorna l'anagrafica completa |
 | `POST` | `/api/candidates` | Inserimento da n8n |
+| `GET` | `/api/sistema/versione` | Versione corrente e disponibilità aggiornamenti |
+| `POST` | `/api/sistema/aggiorna` | Avvia aggiornamento automatico da GitHub |
 
 ---
 
