@@ -36,45 +36,59 @@ export default function Sidebar({ paginaAttiva, onChange }) {
   const [aggiornamentoDisponibile, setAggiornamentoDisponibile] = useState(false);
 
   useEffect(() => {
-    async function controlla() {
-      try {
-        const res = await fetch(`${BASE_URL}/api/sistema/versione`);
-        if (res.ok) {
-          const d = await res.json();
-          setAggiornamentoDisponibile(d.aggiornamento_disponibile);
-        }
-      } catch { /* silenzioso */ }
-    }
-    controlla();
+    fetch(`${BASE_URL}/api/sistema/versione`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d && setAggiornamentoDisponibile(d.aggiornamento_disponibile))
+      .catch(() => {});
   }, []);
 
   return (
-    <aside className="w-64 shrink-0 bg-white border-r-2 border-slate-200 flex flex-col py-6 px-3 gap-1"
-      style={{ boxShadow: '2px 0 8px rgba(0,0,0,0.04)' }}>
+    <aside className="w-64 shrink-0 flex flex-col" style={{ background: '#0f172a' }}>
 
-      <p className="px-4 pb-3 text-xs font-black text-slate-400 uppercase tracking-widest">Navigazione</p>
+      {/* Brand */}
+      <div className="px-6 py-6 border-b border-white/8">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}>
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-5a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </div>
+          <div>
+            <p className="text-white font-extrabold text-base leading-none tracking-tight">HR-BMA</p>
+            <p className="text-slate-500 text-xs mt-1 leading-none">Gestione del personale</p>
+          </div>
+        </div>
+      </div>
 
-      {VOCI.map(voce => {
-        const attiva = paginaAttiva === voce.id;
-        return (
-          <button key={voce.id} onClick={() => onChange(voce.id)}
-            className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all text-left
-              ${attiva
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-          >
-            <span className={`shrink-0 ${attiva ? 'text-white' : 'text-slate-400'}`}>
-              {voce.icona}
-            </span>
-            <span className="flex-1 leading-none tracking-tight">{voce.etichetta}</span>
-            {voce.id === 'aggiornamenti' && aggiornamentoDisponibile && (
-              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${attiva ? 'bg-white' : 'bg-blue-500'}`}
-                title="Aggiornamento disponibile" />
-            )}
-          </button>
-        );
-      })}
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
+        <p className="px-3 pt-1 pb-3 text-xs font-bold text-slate-600 uppercase tracking-widest">Menu</p>
+        {VOCI.map(voce => {
+          const attiva = paginaAttiva === voce.id;
+          return (
+            <button key={voce.id} onClick={() => onChange(voce.id)}
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all text-left
+                ${attiva
+                  ? 'text-white'
+                  : 'text-slate-400 hover:text-white hover:bg-white/6'
+                }`}
+              style={attiva ? { background: 'linear-gradient(135deg,#6366f1,#4f46e5)' } : {}}
+            >
+              <span className={attiva ? 'text-white' : 'text-slate-500'}>{voce.icona}</span>
+              <span className="flex-1">{voce.etichetta}</span>
+              {voce.id === 'aggiornamenti' && aggiornamentoDisponibile && (
+                <span className={`w-2 h-2 rounded-full ${attiva ? 'bg-white' : 'bg-indigo-400'}`} />
+              )}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Footer */}
+      <div className="px-6 py-4 border-t border-white/8">
+        <p className="text-xs text-slate-600">© 2026 HR-BMA</p>
+      </div>
     </aside>
   );
 }

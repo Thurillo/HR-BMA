@@ -117,15 +117,12 @@ export default function PaginaAggiornamenti() {
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-6">
 
-      {/* Titolo */}
-      <div>
-        <h2 className="text-xl font-bold text-slate-800">Aggiornamenti software</h2>
-        <p className="text-sm text-slate-500 mt-0.5">Verifica e applica gli aggiornamenti dal branch <code className="bg-slate-100 px-1 rounded">main</code> di GitHub</p>
-      </div>
-
       {/* Card versione */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Versione installata</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Versione installata</h3>
+          <span className="text-xs text-slate-400">Branch: <code className="bg-slate-100 px-1.5 py-0.5 rounded-md">main</code></span>
+        </div>
 
         {fase === 'carica' ? (
           <p className="text-sm text-slate-400 animate-pulse">Lettura informazioni…</p>
@@ -202,7 +199,8 @@ export default function PaginaAggiornamenti() {
           {aggDisponibile && !inCorso && (
             <button
               onClick={avviaAggiornamento}
-              className="flex items-center gap-2 text-sm font-semibold bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition"
+              className="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2 rounded-xl transition shadow-sm"
+              style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 8l-3-3m3 3l3-3"/>
