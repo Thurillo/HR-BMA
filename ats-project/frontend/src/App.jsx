@@ -20,13 +20,13 @@ export default function App() {
 
       <div className="flex-1 flex flex-col min-h-0 min-w-0">
         {/* Topbar */}
-        <header className="bg-white border-b border-slate-200 px-10 h-[72px] flex items-center justify-between shrink-0">
+        <header className="bg-white border-b border-slate-200 px-12 h-[72px] flex items-center justify-between shrink-0">
           <h1 className="text-lg font-bold text-slate-800">{TITOLI[paginaAttiva]}</h1>
           <StatoDB />
         </header>
 
         {/* Contenuto */}
-        <main className="flex-1 overflow-auto p-10">
+        <main className="flex-1 overflow-auto px-12 py-10">
           {paginaAttiva === 'candidati'     && <PaginaCandidati />}
           {paginaAttiva === 'posizioni'     && <PaginaPosizioni />}
           {paginaAttiva === 'aggiornamenti' && <PaginaAggiornamenti />}
