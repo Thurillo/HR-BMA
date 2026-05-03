@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { aggiornaAnagrafica } from '../api/candidati';
 
 // ── Metadati campi ────────────────────────────────────────────────────────────
@@ -140,8 +140,39 @@ export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
   const [form, setForm] = useState({});
   const [salvataggio, setSalvataggio] = useState(false);
   const [errore, setErrore] = useState(null);
+  const inputImportRef = useRef(null);
 
   if (!candidato) return null;
+
+  function esporta() {
+    const nome = `${candidato.first_name}_${candidato.last_name}`.replace(/\s+/g, '_');
+    const blob = new Blob([JSON.stringify(candidato, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${nome}.json`; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function onFileImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = '';
+    try {
+      const dati = JSON.parse(await file.text());
+      // Prepopola il form con i dati importati e passa in modalità modifica
+      const iniziale = {};
+      for (const [k, v] of Object.entries(dati)) {
+        if (CAMPI_NASCOSTI.has(k)) continue;
+        if (CAMPI_JSON.has(k)) iniziale[k] = arrayToString(parseJson(v));
+        else iniziale[k] = v ?? '';
+      }
+      setForm(iniziale);
+      setErrore(null);
+      setModalita('modifica');
+    } catch {
+      setErrore('File JSON non valido');
+    }
+  }
 
   const campiExtra = parseJson(candidato.extra_data) ?? {};
 
@@ -202,6 +233,18 @@ export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
             <p className="text-sm text-slate-500">{candidato.current_role || '—'}</p>
           </div>
           <div className="flex items-center gap-2">
+            {/* Esporta / Importa sempre visibili */}
+            <button onClick={esporta} title="Esporta candidato in JSON" className="text-slate-400 hover:text-slate-700 transition p-1 rounded-lg hover:bg-slate-100">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 8l-3-3m3 3l3-3"/>
+              </svg>
+            </button>
+            <button onClick={() => inputImportRef.current?.click()} title="Importa da JSON" className="text-slate-400 hover:text-slate-700 transition p-1 rounded-lg hover:bg-slate-100">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12l-3 3m3-3l3 3"/>
+              </svg>
+            </button>
+            <input ref={inputImportRef} type="file" accept=".json" className="hidden" onChange={onFileImport} />
             {modalita === 'vista' ? (
               <button
                 onClick={avviaModifica}
