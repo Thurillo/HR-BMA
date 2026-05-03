@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getCandidati, creaCandidato, eliminaCandidato } from '../api/candidati';
+
+const BASE_URL = import.meta.env.VITE_API_URL ?? '';
 import DettagliModale from './DettagliModale';
 
 const STATI_VALIDI = ['Nuovo', '1° Colloquio', '2° Colloquio', 'Offerta', 'Assunto', 'Scartato'];
@@ -166,6 +168,38 @@ export default function PaginaCandidati() {
   const [daEliminare, setDaEliminare]   = useState(null);
   const [eliminando, setEliminando]     = useState(false);
   const [mostraNuovo, setMostraNuovo]   = useState(false);
+  const [importando, setImportando]     = useState(false);
+  const [msgImport, setMsgImport]       = useState(null);
+  const inputFileRef                    = useRef(null);
+
+  function esporta() {
+    window.open(`${BASE_URL}/api/candidates/export`, '_blank');
+  }
+
+  async function onFileImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = '';
+    setImportando(true);
+    setMsgImport(null);
+    try {
+      const testo = await file.text();
+      const lista = JSON.parse(testo);
+      const res = await fetch(`${BASE_URL}/api/candidates/import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lista),
+      });
+      const corpo = await res.json();
+      if (!res.ok) throw new Error(corpo.errore || 'Errore importazione');
+      setMsgImport({ tipo: 'ok', testo: `${corpo.messaggio}: ${corpo.inseriti} candidati processati${corpo.errori ? `, ${corpo.errori} errori` : ''}` });
+      await carica();
+    } catch (err) {
+      setMsgImport({ tipo: 'err', testo: err.message });
+    } finally {
+      setImportando(false);
+    }
+  }
 
   const carica = useCallback(async () => {
     try {
@@ -242,14 +276,36 @@ export default function PaginaCandidati() {
           <h2 className="text-xl font-bold text-slate-800">Candidati</h2>
           <p className="text-sm text-slate-500 mt-0.5">{filtrati.length} di {candidati.length} candidati</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <input
             type="text"
             value={filtro}
             onChange={e => setFiltro(e.target.value)}
             placeholder="Cerca per nome, ruolo, settore…"
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-64"
+            className="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-56"
           />
+          <button
+            onClick={esporta}
+            title="Esporta tutti i candidati in JSON"
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-slate-100 px-3 py-2 rounded-xl hover:bg-slate-200 transition shrink-0"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 8l-3-3m3 3l3-3"/>
+            </svg>
+            Esporta JSON
+          </button>
+          <button
+            onClick={() => inputFileRef.current?.click()}
+            disabled={importando}
+            title="Importa candidati da file JSON"
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-slate-100 px-3 py-2 rounded-xl hover:bg-slate-200 transition shrink-0 disabled:opacity-60"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12l-3 3m3-3l3 3"/>
+            </svg>
+            {importando ? 'Importazione…' : 'Importa JSON'}
+          </button>
+          <input ref={inputFileRef} type="file" accept=".json" className="hidden" onChange={onFileImport} />
           <button
             onClick={() => setMostraNuovo(true)}
             className="flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-blue-700 transition shrink-0"
@@ -260,6 +316,11 @@ export default function PaginaCandidati() {
             Nuovo candidato
           </button>
         </div>
+        {msgImport && (
+          <div className={`text-xs px-3 py-1.5 rounded-lg ${msgImport.tipo === 'ok' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+            {msgImport.testo}
+          </div>
+        )}
       </div>
 
       {/* Tabella */}

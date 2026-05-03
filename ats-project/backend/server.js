@@ -14,7 +14,7 @@ const CAMPI_TABELLA = new Set([
   'file_path_smb', 'linkedin_url', 'portfolio_url', 'seniority',
   'settore_prevalente', 'hard_skills', 'soft_skills', 'ambito_studi',
   'universita', 'certificazioni', 'preavviso', 'ral_indicata',
-  'modalita_lavoro', 'status', 'macro_sector', 'extra_data',
+  'modalita_lavoro', 'status', 'macro_sector', 'extra_data', 'note',
 ]);
 
 app.use(cors());
@@ -97,6 +97,59 @@ app.put('/api/candidates/:id', async (req, res) => {
     }
     res.status(500).json({ errore: 'Errore aggiornamento anagrafica', dettaglio: err.message });
   }
+});
+
+// GET /api/candidates/export — esporta tutti i candidati in JSON
+app.get('/api/candidates/export', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM candidates ORDER BY created_at ASC');
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="candidati_${new Date().toISOString().slice(0,10)}.json"`);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ errore: 'Errore esportazione', dettaglio: err.message });
+  }
+});
+
+// POST /api/candidates/import — importa candidati da JSON
+app.post('/api/candidates/import', async (req, res) => {
+  const lista = req.body;
+  if (!Array.isArray(lista) || lista.length === 0) {
+    return res.status(400).json({ errore: 'Body deve essere un array di candidati non vuoto' });
+  }
+
+  const CAMPI_SOLA_LETTURA = new Set(['id', 'created_at', 'updated_at']);
+  let inseriti = 0, aggiornati = 0, errori = 0;
+
+  for (const candidato of lista) {
+    const campi = {};
+    for (const [k, v] of Object.entries(candidato)) {
+      if (CAMPI_SOLA_LETTURA.has(k)) continue;
+      if (!CAMPI_TABELLA.has(k)) continue;
+      campi[k] = typeof v === 'object' && v !== null ? JSON.stringify(v) : v;
+    }
+    if (!campi.email && !campi.first_name) { errori++; continue; }
+
+    try {
+      if (campi.email) {
+        // Upsert per email
+        const colonne = Object.keys(campi).join(', ');
+        const segnaposto = Object.keys(campi).map(() => '?').join(', ');
+        const aggiorna = Object.keys(campi).map(k => `${k} = VALUES(${k})`).join(', ');
+        await pool.query(
+          `INSERT INTO candidates (${colonne}) VALUES (${segnaposto}) ON DUPLICATE KEY UPDATE ${aggiorna}`,
+          Object.values(campi)
+        );
+      } else {
+        const colonne = Object.keys(campi).join(', ');
+        const segnaposto = Object.keys(campi).map(() => '?').join(', ');
+        await pool.query(`INSERT INTO candidates (${colonne}) VALUES (${segnaposto})`, Object.values(campi));
+      }
+      inseriti++;
+    } catch { errori++; }
+  }
+
+  res.json({ messaggio: `Importazione completata`, inseriti, errori });
 });
 
 // GET /api/candidates/:id — recupera un singolo candidato completo
