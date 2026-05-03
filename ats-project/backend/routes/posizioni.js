@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT p.*,
+      SELECT p.id, p.titolo, p.descrizione, p.note, p.stato, p.created_at, p.updated_at,
         COUNT(pc.candidate_id) AS num_candidati
       FROM positions p
       LEFT JOIN position_candidates pc ON pc.position_id = p.id

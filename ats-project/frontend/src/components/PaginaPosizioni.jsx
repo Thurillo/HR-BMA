@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
   getPosizioni, creaPosizione, aggiornaPosizione, eliminaPosizione,
@@ -61,6 +61,22 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
   const [cambiandoStato, setCambiandoStato] = useState(false);
   const [candidatoDettaglio, setCandidatoDettaglio] = useState(null);
   const [caricandoDettaglio, setCaricandoDettaglio] = useState(null);
+  const [nota, setNota]                 = useState(posizioneIniziale.note ?? '');
+  const [salvandoNota, setSalvandoNota] = useState(false);
+  const notaTimerRef                    = useRef(null);
+
+  async function salvaNotaDebounced(valore) {
+    setNota(valore);
+    clearTimeout(notaTimerRef.current);
+    notaTimerRef.current = setTimeout(async () => {
+      setSalvandoNota(true);
+      try {
+        await aggiornaPosizione(posizione.id, { note: valore });
+      } finally {
+        setSalvandoNota(false);
+      }
+    }, 800);
+  }
 
   async function apriDettaglioCandidato(id) {
     setCaricandoDettaglio(id);
@@ -254,6 +270,21 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
           </div>
         </div>
       )}
+
+      {/* Note posizione */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Note sulla posizione</label>
+          {salvandoNota && <span className="text-xs text-slate-400 animate-pulse">Salvataggio…</span>}
+        </div>
+        <textarea
+          rows={6}
+          value={nota}
+          onChange={e => salvaNotaDebounced(e.target.value)}
+          placeholder="Scrivi note, requisiti, dettagli o qualsiasi informazione sulla posizione…"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 resize-y focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+      </div>
 
       {/* Kanban board */}
       {caricamento ? (

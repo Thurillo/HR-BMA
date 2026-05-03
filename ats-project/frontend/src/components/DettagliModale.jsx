@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { aggiornaAnagrafica } from '../api/candidati';
 
 // ── Metadati campi ────────────────────────────────────────────────────────────
-const CAMPI_NASCOSTI = new Set(['id', 'created_at', 'updated_at', 'extra_data']);
+const CAMPI_NASCOSTI = new Set(['id', 'created_at', 'updated_at', 'extra_data', 'note']);
 
 const CAMPI_JSON = new Set(['hard_skills', 'soft_skills', 'certificazioni']);
 
@@ -270,6 +270,15 @@ export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
                 </div>
               )}
 
+              {/* Note */}
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Note</p>
+                {candidato.note
+                  ? <p className="text-sm text-slate-700 whitespace-pre-wrap">{candidato.note}</p>
+                  : <p className="text-sm text-slate-400 italic">Nessuna nota</p>
+                }
+              </div>
+
               {/* Date */}
               <div className="border-t border-slate-100 pt-3 flex gap-6">
                 <div>
@@ -284,15 +293,28 @@ export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
             </>
           ) : (
             /* ── Form di modifica ── */
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-              {Object.keys(form).map(chiave => (
-                <CampoModifica
-                  key={chiave}
-                  chiave={chiave}
-                  valore={form[chiave]}
-                  onChange={aggiornaForm}
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                {Object.keys(form).filter(k => k !== 'note').map(chiave => (
+                  <CampoModifica
+                    key={chiave}
+                    chiave={chiave}
+                    valore={form[chiave]}
+                    onChange={aggiornaForm}
+                  />
+                ))}
+              </div>
+              {/* Note — campo dedicato a piena larghezza */}
+              <div className="border-t border-slate-100 pt-4">
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Note</label>
+                <textarea
+                  rows={6}
+                  value={form.note ?? ''}
+                  onChange={e => aggiornaForm('note', e.target.value)}
+                  placeholder="Aggiungi note sul candidato…"
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 resize-y focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
-              ))}
+              </div>
             </div>
           )}
         </div>
