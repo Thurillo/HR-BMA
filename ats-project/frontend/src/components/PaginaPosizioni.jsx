@@ -6,6 +6,7 @@ import {
   aggiornStatusCandidatoPosizione,
 } from '../api/posizioni';
 import { getCandidati } from '../api/candidati';
+import DettagliModale from './DettagliModale';
 
 const BADGE_STATO = {
   'Aperta':   'bg-green-100 text-green-700',
@@ -46,7 +47,8 @@ function raggruppaPerStatus(candidati) {
 }
 
 // ── Vista dettaglio posizione (Kanban) ────────────────────────────────────────
-function DettaglioPosizione({ posizione, onTorna, onEliminata }) {
+function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata, onAggiornata }) {
+  const [posizione, setPosizione]       = useState(posizioneIniziale);
   const [candidati, setCandidati]       = useState([]);
   const [colonneMap, setColonneMap]     = useState({});
   const [caricamento, setCaricamento]   = useState(true);
@@ -56,6 +58,19 @@ function DettaglioPosizione({ posizione, onTorna, onEliminata }) {
   const [aggiungendo, setAggiungendo]   = useState(null);
   const [confermaElimina, setConfermaElimina] = useState(false);
   const [eliminando, setEliminando]     = useState(false);
+  const [cambiandoStato, setCambiandoStato] = useState(false);
+  const [candidatoDettaglio, setCandidatoDettaglio] = useState(null);
+
+  async function cambiaStato(nuovoStato) {
+    setCambiandoStato(true);
+    try {
+      const aggiornata = await aggiornaPosizione(posizione.id, { stato: nuovoStato });
+      setPosizione(prev => ({ ...prev, ...aggiornata }));
+      onAggiornata({ ...posizione, ...aggiornata });
+    } finally {
+      setCambiandoStato(false);
+    }
+  }
 
   const caricaCandidati = useCallback(async () => {
     setCaricamento(true);
@@ -159,9 +174,14 @@ function DettaglioPosizione({ posizione, onTorna, onEliminata }) {
         </button>
         <span className="text-slate-300">/</span>
         <h2 className="text-xl font-bold text-slate-800 flex-1">{posizione.titolo}</h2>
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${BADGE_STATO[posizione.stato]}`}>
-          {posizione.stato}
-        </span>
+        <select
+          value={posizione.stato}
+          onChange={e => cambiaStato(e.target.value)}
+          disabled={cambiandoStato}
+          className={`text-xs font-semibold px-2 py-1 rounded-lg border cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60 ${BADGE_STATO[posizione.stato]}`}
+        >
+          {STATI_POSIZIONE.map(s => <option key={s}>{s}</option>)}
+        </select>
         <button
           onClick={apriAggiungi}
           className="flex items-center gap-1.5 text-sm font-medium bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition"
@@ -252,8 +272,14 @@ function DettaglioPosizione({ posizione, onTorna, onEliminata }) {
                               {...prov.dragHandleProps}
                               className={`bg-white border rounded-xl p-2.5 shadow-sm text-xs cursor-grab active:cursor-grabbing select-none ${snap.isDragging ? 'shadow-md rotate-1' : ''} ${BADGE_KANBAN[col]}`}
                             >
-                              <p className="font-semibold text-slate-800 leading-tight">{c.first_name} {c.last_name}</p>
-                              {c.current_role && <p className="text-slate-500 mt-0.5 truncate">{c.current_role}</p>}
+                              <button
+                                onMouseDown={e => e.stopPropagation()}
+                                onClick={() => setCandidatoDettaglio(c)}
+                                className="w-full text-left"
+                              >
+                                <p className="font-semibold text-slate-800 leading-tight hover:text-blue-700 transition-colors">{c.first_name} {c.last_name}</p>
+                                {c.current_role && <p className="text-slate-500 mt-0.5 truncate">{c.current_role}</p>}
+                              </button>
                               <button
                                 onMouseDown={e => e.stopPropagation()}
                                 onClick={() => rimuovi(c.id)}
@@ -273,6 +299,27 @@ function DettaglioPosizione({ posizione, onTorna, onEliminata }) {
             ))}
           </div>
         </DragDropContext>
+      )}
+
+      {/* Dettaglio candidato */}
+      {candidatoDettaglio && (
+        <DettagliModale
+          candidato={candidatoDettaglio}
+          onChiudi={() => setCandidatoDettaglio(null)}
+          onAggiornato={aggiornato => {
+            setCandidatoDettaglio(aggiornato);
+            setCandidati(prev => prev.map(c => c.id === aggiornato.id ? { ...c, first_name: aggiornato.first_name, last_name: aggiornato.last_name, current_role: aggiornato.current_role } : c));
+            setColonneMap(prev => {
+              const copia = {};
+              for (const col of COLONNE_KANBAN) {
+                copia[col] = (prev[col] || []).map(c => c.id === aggiornato.id
+                  ? { ...c, first_name: aggiornato.first_name, last_name: aggiornato.last_name, current_role: aggiornato.current_role }
+                  : c);
+              }
+              return copia;
+            });
+          }}
+        />
       )}
 
       {/* Conferma eliminazione posizione */}
@@ -347,6 +394,10 @@ export default function PaginaPosizioni() {
         posizione={posizioneAperta}
         onTorna={() => setPosizioneAperta(null)}
         onEliminata={id => setPosizioni(prev => prev.filter(p => p.id !== id))}
+        onAggiornata={aggiornata => {
+          setPosizioni(prev => prev.map(p => p.id === aggiornata.id ? { ...p, ...aggiornata } : p));
+          setPosizioneAperta(prev => ({ ...prev, ...aggiornata }));
+        }}
       />
     );
   }
