@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import KanbanBoard from './components/KanbanBoard';
 import PaginaPosizioni from './components/PaginaPosizioni';
+import PaginaAggiornamenti from './components/PaginaAggiornamenti';
 import Sidebar from './components/Sidebar';
-import BadgeAggiornamento from './components/BadgeAggiornamento';
 import StatoDB from './components/StatoDB';
 
 export default function App() {
@@ -22,10 +22,7 @@ export default function App() {
             <p className="text-xs text-slate-400 mt-0.5">Gestione selezione del personale</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <StatoDB />
-          <BadgeAggiornamento />
-        </div>
+        <StatoDB />
       </header>
 
       {/* Layout principale */}
@@ -33,8 +30,9 @@ export default function App() {
         <Sidebar paginaAttiva={paginaAttiva} onChange={setPaginaAttiva} />
 
         <main className="flex-1 overflow-auto p-6">
-          {paginaAttiva === 'candidati' && <KanbanBoard />}
-          {paginaAttiva === 'posizioni' && <PaginaPosizioni />}
+          {paginaAttiva === 'candidati'    && <KanbanBoard />}
+          {paginaAttiva === 'posizioni'    && <PaginaPosizioni />}
+          {paginaAttiva === 'aggiornamenti' && <PaginaAggiornamenti />}
         </main>
       </div>
 

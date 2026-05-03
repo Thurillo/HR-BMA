@@ -1,3 +1,7 @@
+import { useState, useEffect } from 'react';
+
+const BASE_URL = import.meta.env.VITE_API_URL ?? '';
+
 const VOCI = [
   {
     id: 'candidati',
@@ -17,9 +21,33 @@ const VOCI = [
       </svg>
     ),
   },
+  {
+    id: 'aggiornamenti',
+    etichetta: 'Aggiornamenti',
+    icona: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 104.583 9.065"/>
+      </svg>
+    ),
+  },
 ];
 
 export default function Sidebar({ paginaAttiva, onChange }) {
+  const [aggiornamentoDisponibile, setAggiornamentoDisponibile] = useState(false);
+
+  useEffect(() => {
+    async function controlla() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/sistema/versione`);
+        if (res.ok) {
+          const dati = await res.json();
+          setAggiornamentoDisponibile(dati.aggiornamento_disponibile);
+        }
+      } catch { /* silenzioso */ }
+    }
+    controlla();
+  }, []);
+
   return (
     <aside className="w-56 shrink-0 bg-white border-r border-slate-200 flex flex-col py-4 gap-1">
       {VOCI.map(voce => (
@@ -33,7 +61,10 @@ export default function Sidebar({ paginaAttiva, onChange }) {
             }`}
         >
           {voce.icona}
-          {voce.etichetta}
+          <span className="flex-1">{voce.etichetta}</span>
+          {voce.id === 'aggiornamenti' && aggiornamentoDisponibile && (
+            <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" title="Aggiornamento disponibile"/>
+          )}
         </button>
       ))}
     </aside>

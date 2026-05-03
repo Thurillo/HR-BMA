@@ -168,6 +168,12 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+        proxy_connect_timeout 60s;
+        # Necessario per Server-Sent Events (aggiornamento real-time)
+        proxy_buffering off;
+        proxy_cache off;
     }
 }
 EOF
