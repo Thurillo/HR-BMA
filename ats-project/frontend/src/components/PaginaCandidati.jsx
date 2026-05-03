@@ -1,6 +1,128 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getCandidati, eliminaCandidato } from '../api/candidati';
+import { getCandidati, creaCandidato, eliminaCandidato } from '../api/candidati';
 import DettagliModale from './DettagliModale';
+
+const STATI_VALIDI = ['Nuovo', '1° Colloquio', '2° Colloquio', 'Offerta', 'Assunto', 'Scartato'];
+
+const FORM_VUOTO = {
+  first_name: '', last_name: '', email: '', phone: '', location: '',
+  current_role: '', years_experience: '', seniority: '', macro_sector: '',
+  settore_prevalente: '', modalita_lavoro: '', ral_indicata: '', preavviso: '',
+  linkedin_url: '', executive_summary: '', status: 'Nuovo',
+};
+
+function ModaleNuovoCandidato({ onChiudi, onCreato }) {
+  const [form, setForm]     = useState(FORM_VUOTO);
+  const [errore, setErrore] = useState(null);
+  const [invio, setInvio]   = useState(false);
+
+  function set(campo, valore) {
+    setForm(prev => ({ ...prev, [campo]: valore }));
+  }
+
+  async function invia(e) {
+    e.preventDefault();
+    if (!form.first_name.trim() || !form.last_name.trim()) {
+      return setErrore('Nome e cognome sono obbligatori');
+    }
+    setInvio(true);
+    setErrore(null);
+    try {
+      const { id } = await creaCandidato(form);
+      // ricarica il candidato appena creato tramite GET
+      const lista = await (await fetch(`${(import.meta.env.VITE_API_URL ?? '')}/api/candidates`)).json();
+      const nuovo = lista.find(c => c.id === id) ?? { ...form, id };
+      onCreato(nuovo);
+      onChiudi();
+    } catch (err) {
+      setErrore(err.message);
+    } finally {
+      setInvio(false);
+    }
+  }
+
+  function campo(label, key, tipo = 'text', props = {}) {
+    return (
+      <div>
+        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{label}</label>
+        <input
+          type={tipo}
+          value={form[key]}
+          onChange={e => set(key, e.target.value)}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          {...props}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+
+        {/* Intestazione */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
+          <h3 className="text-base font-bold text-slate-800">Nuovo candidato</h3>
+          <button onClick={onChiudi} className="text-slate-400 hover:text-slate-600 transition">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Form scrollabile */}
+        <form onSubmit={invia} className="overflow-y-auto px-6 py-5 flex flex-col gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {campo('Nome *', 'first_name', 'text', { autoFocus: true })}
+            {campo('Cognome *', 'last_name')}
+            {campo('Email', 'email', 'email')}
+            {campo('Telefono', 'phone', 'tel')}
+            {campo('Ruolo attuale', 'current_role')}
+            {campo('Anni di esperienza', 'years_experience', 'number')}
+            {campo('Seniority', 'seniority')}
+            {campo('Macro settore', 'macro_sector')}
+            {campo('Settore prevalente', 'settore_prevalente')}
+            {campo('Modalità di lavoro', 'modalita_lavoro')}
+            {campo('RAL indicata', 'ral_indicata')}
+            {campo('Preavviso', 'preavviso')}
+            {campo('Località', 'location')}
+            {campo('LinkedIn', 'linkedin_url', 'url')}
+            <div>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Stato</label>
+              <select
+                value={form.status}
+                onChange={e => set('status', e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              >
+                {STATI_VALIDI.map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Sintesi professionale</label>
+            <textarea
+              rows={3}
+              value={form.executive_summary}
+              onChange={e => set('executive_summary', e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+
+          {errore && <p className="text-sm text-red-600">{errore}</p>}
+
+          <div className="flex gap-2 justify-end pt-1 pb-1">
+            <button type="button" onClick={onChiudi} className="text-sm text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-100 transition">
+              Annulla
+            </button>
+            <button type="submit" disabled={invio} className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-60">
+              {invio ? 'Salvataggio…' : 'Crea candidato'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 const COLONNE = [
   { key: 'last_name',         label: 'Cognome' },
@@ -43,6 +165,7 @@ export default function PaginaCandidati() {
   const [selezionato, setSelezionato]   = useState(null);
   const [daEliminare, setDaEliminare]   = useState(null);
   const [eliminando, setEliminando]     = useState(false);
+  const [mostraNuovo, setMostraNuovo]   = useState(false);
 
   const carica = useCallback(async () => {
     try {
@@ -119,13 +242,24 @@ export default function PaginaCandidati() {
           <h2 className="text-xl font-bold text-slate-800">Candidati</h2>
           <p className="text-sm text-slate-500 mt-0.5">{filtrati.length} di {candidati.length} candidati</p>
         </div>
-        <input
-          type="text"
-          value={filtro}
-          onChange={e => setFiltro(e.target.value)}
-          placeholder="Cerca per nome, ruolo, settore…"
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-72"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={filtro}
+            onChange={e => setFiltro(e.target.value)}
+            placeholder="Cerca per nome, ruolo, settore…"
+            className="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-64"
+          />
+          <button
+            onClick={() => setMostraNuovo(true)}
+            className="flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-blue-700 transition shrink-0"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nuovo candidato
+          </button>
+        </div>
       </div>
 
       {/* Tabella */}
@@ -187,6 +321,14 @@ export default function PaginaCandidati() {
           </table>
         </div>
       </div>
+
+      {/* Modale nuovo candidato */}
+      {mostraNuovo && (
+        <ModaleNuovoCandidato
+          onChiudi={() => setMostraNuovo(false)}
+          onCreato={nuovo => setCandidati(prev => [nuovo, ...prev])}
+        />
+      )}
 
       {/* Modale dettaglio/modifica */}
       {selezionato && (

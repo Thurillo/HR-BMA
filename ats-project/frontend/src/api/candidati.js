@@ -17,6 +17,17 @@ export async function aggiornaStatus(id, status) {
   return res.json();
 }
 
+export async function creaCandidato(dati) {
+  const res = await fetch(`${BASE_URL}/api/candidates`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dati),
+  });
+  const corpo = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(corpo.errore || 'Errore creazione candidato');
+  return corpo;
+}
+
 export async function eliminaCandidato(id) {
   const res = await fetch(`${BASE_URL}/api/candidates/${id}`, { method: 'DELETE' });
   if (!res.ok) throw new Error('Errore eliminazione candidato');
