@@ -99,6 +99,17 @@ app.put('/api/candidates/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/candidates/:id — elimina un candidato
+app.delete('/api/candidates/:id', async (req, res) => {
+  try {
+    const [result] = await pool.query('DELETE FROM candidates WHERE id = ?', [req.params.id]);
+    if (result.affectedRows === 0) return res.status(404).json({ errore: 'Candidato non trovato' });
+    res.json({ messaggio: 'Candidato eliminato' });
+  } catch (err) {
+    res.status(500).json({ errore: 'Errore eliminazione candidato', dettaglio: err.message });
+  }
+});
+
 // POST /api/candidates — ricezione dati da n8n
 app.post('/api/candidates', async (req, res) => {
   const payload = req.body;

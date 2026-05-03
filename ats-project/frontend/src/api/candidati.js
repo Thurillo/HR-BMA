@@ -17,6 +17,11 @@ export async function aggiornaStatus(id, status) {
   return res.json();
 }
 
+export async function eliminaCandidato(id) {
+  const res = await fetch(`${BASE_URL}/api/candidates/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Errore eliminazione candidato');
+}
+
 export async function aggiornaAnagrafica(id, dati) {
   const res = await fetch(`${BASE_URL}/api/candidates/${id}`, {
     method: 'PUT',
