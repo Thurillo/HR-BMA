@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from '../db.js';
@@ -128,12 +128,21 @@ router.get('/aggiorna/stream', async (req, res) => {
     invia(`✓ ${pullOut.trim()}`);
 
     invia('Aggiornamento dipendenze backend…');
-    await eseguiCmd('npm install --omit=dev --silent', { cwd: path.join(ROOT, 'backend') });
+    await eseguiCmd('npm install --omit=dev --silent', {
+      cwd: path.join(ROOT, 'backend'),
+      timeout: 120000,
+    });
     invia('✓ Dipendenze backend aggiornate');
 
     invia('Installazione dipendenze frontend…');
-    await eseguiCmd('npm install --silent', { cwd: path.join(ROOT, 'frontend') });
+    await eseguiCmd('npm install --silent', {
+      cwd: path.join(ROOT, 'frontend'),
+      timeout: 120000,
+    });
     invia('✓ Dipendenze frontend aggiornate');
+
+    // Scrive .env frontend esattamente come fa upgrade.sh
+    await writeFile(path.join(ROOT, 'frontend', '.env'), 'VITE_API_URL=\n', 'utf8');
 
     invia('Build frontend in produzione (può richiedere qualche minuto)…');
     await eseguiCmd('npm run build --silent', {
@@ -142,6 +151,15 @@ router.get('/aggiorna/stream', async (req, res) => {
       timeout: 300000,
     });
     invia('✓ Frontend compilato con successo');
+
+    // Ricarica nginx se attivo (come fa upgrade.sh)
+    try {
+      const { stdout: nginxSt } = await eseguiCmd('systemctl is-active nginx');
+      if (nginxSt.trim() === 'active') {
+        await eseguiCmd('systemctl reload nginx');
+        invia('✓ nginx ricaricato');
+      }
+    } catch { /* nginx non presente, ignora */ }
 
     invia('Riavvio del servizio…', 'completato');
     res.end();
