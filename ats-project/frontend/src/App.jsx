@@ -12,14 +12,14 @@ export default function App() {
     <div className="min-h-screen bg-slate-100 flex flex-col">
 
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 shadow-sm px-6 py-4 flex items-center justify-between gap-3 shrink-0">
+      <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between gap-3 shrink-0 shadow-sm z-10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-            <span className="text-white text-sm font-bold">ATS</span>
+          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 shadow-sm">
+            <span className="text-white text-sm font-extrabold tracking-tight">ATS</span>
           </div>
           <div>
-            <h1 className="text-lg font-bold text-slate-800 leading-none">HR Candidati</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Gestione selezione del personale</p>
+            <h1 className="text-base font-bold text-slate-800 leading-none">HR Candidati</h1>
+            <p className="text-[11px] text-slate-400 mt-0.5 leading-none">Gestione selezione del personale</p>
           </div>
         </div>
         <StatoDB />
@@ -28,10 +28,9 @@ export default function App() {
       {/* Layout principale */}
       <div className="flex flex-1 min-h-0">
         <Sidebar paginaAttiva={paginaAttiva} onChange={setPaginaAttiva} />
-
-        <main className="flex-1 overflow-auto p-6">
-          {paginaAttiva === 'candidati'    && <PaginaCandidati />}
-          {paginaAttiva === 'posizioni'    && <PaginaPosizioni />}
+        <main className="flex-1 overflow-auto p-6 bg-slate-100">
+          {paginaAttiva === 'candidati'     && <PaginaCandidati />}
+          {paginaAttiva === 'posizioni'     && <PaginaPosizioni />}
           {paginaAttiva === 'aggiornamenti' && <PaginaAggiornamenti />}
         </main>
       </div>
