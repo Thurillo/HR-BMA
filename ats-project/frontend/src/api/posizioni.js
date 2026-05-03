@@ -48,6 +48,15 @@ export async function aggiungiCandidatoPosizione(posId, candidateId) {
   if (!res.ok) throw new Error('Errore aggiunta candidato');
 }
 
+export async function aggiornStatusCandidatoPosizione(posId, cid, status) {
+  const res = await fetch(`${BASE_URL}/api/posizioni/${posId}/candidati/${cid}/status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) throw new Error('Errore aggiornamento stato candidato');
+}
+
 export async function rimuoviCandidatoPosizione(posId, candidateId) {
   const res = await fetch(`${BASE_URL}/api/posizioni/${posId}/candidati/${candidateId}`, {
     method: 'DELETE',

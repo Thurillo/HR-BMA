@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import KanbanBoard from './components/KanbanBoard';
+import PaginaCandidati from './components/PaginaCandidati';
 import PaginaPosizioni from './components/PaginaPosizioni';
 import PaginaAggiornamenti from './components/PaginaAggiornamenti';
 import Sidebar from './components/Sidebar';
@@ -30,7 +30,7 @@ export default function App() {
         <Sidebar paginaAttiva={paginaAttiva} onChange={setPaginaAttiva} />
 
         <main className="flex-1 overflow-auto p-6">
-          {paginaAttiva === 'candidati'    && <KanbanBoard />}
+          {paginaAttiva === 'candidati'    && <PaginaCandidati />}
           {paginaAttiva === 'posizioni'    && <PaginaPosizioni />}
           {paginaAttiva === 'aggiornamenti' && <PaginaAggiornamenti />}
         </main>

@@ -1,24 +1,314 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getPosizioni, creaPosizione } from '../api/posizioni';
-import ModalePosizioneDettaglio from './ModalePosizioneDettaglio';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import {
+  getPosizioni, creaPosizione, aggiornaPosizione, eliminaPosizione,
+  getCandidatiPosizione, aggiungiCandidatoPosizione, rimuoviCandidatoPosizione,
+  aggiornStatusCandidatoPosizione,
+} from '../api/posizioni';
+import { getCandidati } from '../api/candidati';
 
 const BADGE_STATO = {
   'Aperta':   'bg-green-100 text-green-700',
   'In pausa': 'bg-amber-100 text-amber-700',
   'Chiusa':   'bg-slate-100 text-slate-500',
 };
-
 const STATI_POSIZIONE = ['Aperta', 'In pausa', 'Chiusa'];
 
+const COLONNE_KANBAN = ['Nuovo', '1° Colloquio', '2° Colloquio', 'Offerta', 'Assunto', 'Scartato'];
+
+const BADGE_KANBAN = {
+  'Nuovo':          'bg-slate-100 text-slate-600 border-slate-200',
+  '1° Colloquio':   'bg-blue-50 text-blue-700 border-blue-200',
+  '2° Colloquio':   'bg-indigo-50 text-indigo-700 border-indigo-200',
+  'Offerta':        'bg-amber-50 text-amber-700 border-amber-200',
+  'Assunto':        'bg-green-50 text-green-700 border-green-200',
+  'Scartato':       'bg-red-50 text-red-600 border-red-200',
+};
+
+const COL_HEADER = {
+  'Nuovo':          'bg-slate-50 border-slate-200 text-slate-600',
+  '1° Colloquio':   'bg-blue-50 border-blue-200 text-blue-700',
+  '2° Colloquio':   'bg-indigo-50 border-indigo-200 text-indigo-700',
+  'Offerta':        'bg-amber-50 border-amber-200 text-amber-700',
+  'Assunto':        'bg-green-50 border-green-200 text-green-700',
+  'Scartato':       'bg-red-50 border-red-200 text-red-600',
+};
+
+// ── Utility ──────────────────────────────────────────────────────────────────
+function raggruppaPerStatus(candidati) {
+  const mappa = {};
+  for (const col of COLONNE_KANBAN) mappa[col] = [];
+  for (const c of candidati) {
+    const col = COLONNE_KANBAN.includes(c.status_posizione) ? c.status_posizione : 'Nuovo';
+    mappa[col].push(c);
+  }
+  return mappa;
+}
+
+// ── Vista dettaglio posizione (Kanban) ────────────────────────────────────────
+function DettaglioPosizione({ posizione, onTorna, onEliminata }) {
+  const [candidati, setCandidati]       = useState([]);
+  const [colonneMap, setColonneMap]     = useState({});
+  const [caricamento, setCaricamento]   = useState(true);
+  const [tuttiCandidati, setTuttiCandidati] = useState([]);
+  const [mostraAggiungi, setMostraAggiungi] = useState(false);
+  const [cercaAgg, setCercaAgg]         = useState('');
+  const [aggiungendo, setAggiungendo]   = useState(null);
+  const [confermaElimina, setConfermaElimina] = useState(false);
+  const [eliminando, setEliminando]     = useState(false);
+
+  const caricaCandidati = useCallback(async () => {
+    setCaricamento(true);
+    try {
+      const lista = await getCandidatiPosizione(posizione.id);
+      setCandidati(lista);
+      setColonneMap(raggruppaPerStatus(lista));
+    } finally {
+      setCaricamento(false);
+    }
+  }, [posizione.id]);
+
+  useEffect(() => { caricaCandidati(); }, [caricaCandidati]);
+
+  async function apriAggiungi() {
+    setMostraAggiungi(true);
+    setCercaAgg('');
+    const tutti = await getCandidati();
+    const associati = new Set(candidati.map(c => c.id));
+    setTuttiCandidati(tutti.filter(c => !associati.has(c.id)));
+  }
+
+  async function aggiungi(candidateId) {
+    setAggiungendo(candidateId);
+    try {
+      await aggiungiCandidatoPosizione(posizione.id, candidateId);
+      await caricaCandidati();
+      // aggiorna lista disponibili
+      setTuttiCandidati(prev => prev.filter(c => c.id !== candidateId));
+    } finally {
+      setAggiungendo(null);
+    }
+  }
+
+  async function rimuovi(candidateId) {
+    await rimuoviCandidatoPosizione(posizione.id, candidateId);
+    setCandidati(prev => prev.filter(c => c.id !== candidateId));
+    setColonneMap(prev => {
+      const copia = { ...prev };
+      for (const col of COLONNE_KANBAN) {
+        copia[col] = (copia[col] || []).filter(c => c.id !== candidateId);
+      }
+      return copia;
+    });
+  }
+
+  async function onDragEnd(result) {
+    const { source, destination, draggableId } = result;
+    if (!destination) return;
+    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+
+    const candidateId = parseInt(draggableId, 10);
+    const nuovoStatus = destination.droppableId;
+
+    // aggiorna UI ottimisticamente
+    setColonneMap(prev => {
+      const copia = {};
+      for (const col of COLONNE_KANBAN) copia[col] = [...(prev[col] || [])];
+      const card = copia[source.droppableId].find(c => c.id === candidateId);
+      copia[source.droppableId] = copia[source.droppableId].filter(c => c.id !== candidateId);
+      if (card) {
+        const aggiornata = { ...card, status_posizione: nuovoStatus };
+        copia[destination.droppableId].splice(destination.index, 0, aggiornata);
+      }
+      return copia;
+    });
+
+    await aggiornStatusCandidatoPosizione(posizione.id, candidateId, nuovoStatus).catch(() => {
+      // rollback in caso di errore
+      caricaCandidati();
+    });
+  }
+
+  async function eseguiElimina() {
+    setEliminando(true);
+    try {
+      await eliminaPosizione(posizione.id);
+      onEliminata(posizione.id);
+      onTorna();
+    } finally {
+      setEliminando(false);
+    }
+  }
+
+  const candidatiDisponibili = tuttiCandidati.filter(c => {
+    if (!cercaAgg.trim()) return true;
+    const q = cercaAgg.toLowerCase();
+    return [c.first_name, c.last_name, c.current_role, c.email].some(v => v && v.toLowerCase().includes(q));
+  });
+
+  return (
+    <div className="flex flex-col gap-4">
+
+      {/* Header dettaglio */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <button onClick={onTorna} className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 transition">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Posizioni
+        </button>
+        <span className="text-slate-300">/</span>
+        <h2 className="text-xl font-bold text-slate-800 flex-1">{posizione.titolo}</h2>
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${BADGE_STATO[posizione.stato]}`}>
+          {posizione.stato}
+        </span>
+        <button
+          onClick={apriAggiungi}
+          className="flex items-center gap-1.5 text-sm font-medium bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          Aggiungi candidato
+        </button>
+        <button
+          onClick={() => setConfermaElimina(true)}
+          className="text-sm text-red-500 hover:text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
+        >
+          Elimina posizione
+        </button>
+      </div>
+
+      {posizione.descrizione && (
+        <p className="text-sm text-slate-500">{posizione.descrizione}</p>
+      )}
+
+      {/* Pannello aggiungi candidato */}
+      {mostraAggiungi && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-slate-700">Aggiungi candidato</h3>
+            <button onClick={() => setMostraAggiungi(false)} className="text-slate-400 hover:text-slate-600">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <input
+            type="text"
+            value={cercaAgg}
+            onChange={e => setCercaAgg(e.target.value)}
+            placeholder="Cerca per nome, ruolo…"
+            autoFocus
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <div className="max-h-56 overflow-y-auto divide-y divide-slate-100">
+            {candidatiDisponibili.length === 0 ? (
+              <p className="text-sm text-slate-400 py-4 text-center">Nessun candidato disponibile</p>
+            ) : candidatiDisponibili.map(c => (
+              <div key={c.id} className="flex items-center justify-between py-2 px-1">
+                <div>
+                  <p className="text-sm font-medium text-slate-800">{c.first_name} {c.last_name}</p>
+                  <p className="text-xs text-slate-400">{c.current_role}{c.macro_sector ? ` · ${c.macro_sector}` : ''}</p>
+                </div>
+                <button
+                  onClick={() => aggiungi(c.id)}
+                  disabled={aggiungendo === c.id}
+                  className="text-xs font-medium text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg hover:bg-blue-50 transition disabled:opacity-50"
+                >
+                  {aggiungendo === c.id ? '…' : 'Aggiungi'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Kanban board */}
+      {caricamento ? (
+        <div className="text-center py-12 text-slate-400">Caricamento candidati…</div>
+      ) : (
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {COLONNE_KANBAN.map(col => (
+              <div key={col} className="flex flex-col gap-2 min-w-[180px] w-[180px] shrink-0">
+                <div className={`flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-bold uppercase tracking-wide ${COL_HEADER[col]}`}>
+                  <span>{col}</span>
+                  <span className="opacity-60">{(colonneMap[col] || []).length}</span>
+                </div>
+                <Droppable droppableId={col}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={`flex flex-col gap-2 min-h-[80px] rounded-xl p-2 transition-colors ${snapshot.isDraggingOver ? 'bg-blue-50' : 'bg-slate-50'}`}
+                    >
+                      {(colonneMap[col] || []).map((c, idx) => (
+                        <Draggable key={c.id} draggableId={String(c.id)} index={idx}>
+                          {(prov, snap) => (
+                            <div
+                              ref={prov.innerRef}
+                              {...prov.draggableProps}
+                              {...prov.dragHandleProps}
+                              className={`bg-white border rounded-xl p-2.5 shadow-sm text-xs cursor-grab active:cursor-grabbing select-none ${snap.isDragging ? 'shadow-md rotate-1' : ''} ${BADGE_KANBAN[col]}`}
+                            >
+                              <p className="font-semibold text-slate-800 leading-tight">{c.first_name} {c.last_name}</p>
+                              {c.current_role && <p className="text-slate-500 mt-0.5 truncate">{c.current_role}</p>}
+                              <button
+                                onMouseDown={e => e.stopPropagation()}
+                                onClick={() => rimuovi(c.id)}
+                                className="mt-1.5 text-red-400 hover:text-red-600 text-[10px] font-medium"
+                              >
+                                Rimuovi
+                              </button>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </div>
+            ))}
+          </div>
+        </DragDropContext>
+      )}
+
+      {/* Conferma eliminazione posizione */}
+      {confermaElimina && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
+            <h3 className="text-base font-bold text-slate-800 mb-2">Elimina posizione</h3>
+            <p className="text-sm text-slate-600 mb-5">
+              Vuoi eliminare la posizione <span className="font-semibold">{posizione.titolo}</span>?
+              Tutti i candidati associati verranno scollegati.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setConfermaElimina(false)} className="text-sm px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">
+                Annulla
+              </button>
+              <button onClick={eseguiElimina} disabled={eliminando} className="text-sm px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-60">
+                {eliminando ? 'Eliminazione…' : 'Elimina'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Vista lista posizioni ─────────────────────────────────────────────────────
 export default function PaginaPosizioni() {
-  const [posizioni, setPosizioni] = useState([]);
-  const [caricamento, setCaricamento] = useState(true);
-  const [errore, setErrore] = useState(null);
-  const [mostraForm, setMostraForm] = useState(false);
-  const [posizioneSelezionata, setPosizioneSelezionata] = useState(null);
-  const [form, setForm] = useState({ titolo: '', descrizione: '', stato: 'Aperta' });
-  const [invio, setInvio] = useState(false);
-  const [erroreForm, setErroreForm] = useState(null);
+  const [posizioni, setPosizioni]             = useState([]);
+  const [caricamento, setCaricamento]         = useState(true);
+  const [errore, setErrore]                   = useState(null);
+  const [mostraForm, setMostraForm]           = useState(false);
+  const [posizioneAperta, setPosizioneAperta] = useState(null);
+  const [form, setForm]                       = useState({ titolo: '', descrizione: '', stato: 'Aperta' });
+  const [invio, setInvio]                     = useState(false);
+  const [erroreForm, setErroreForm]           = useState(null);
 
   const carica = useCallback(async () => {
     try {
@@ -41,7 +331,7 @@ export default function PaginaPosizioni() {
     setErroreForm(null);
     try {
       const nuova = await creaPosizione(form);
-      setPosizioni(prev => [nuova, ...prev]);
+      setPosizioni(prev => [{ ...nuova, num_candidati: 0 }, ...prev]);
       setForm({ titolo: '', descrizione: '', stato: 'Aperta' });
       setMostraForm(false);
     } catch (err) {
@@ -51,6 +341,16 @@ export default function PaginaPosizioni() {
     }
   }
 
+  if (posizioneAperta) {
+    return (
+      <DettaglioPosizione
+        posizione={posizioneAperta}
+        onTorna={() => setPosizioneAperta(null)}
+        onEliminata={id => setPosizioni(prev => prev.filter(p => p.id !== id))}
+      />
+    );
+  }
+
   if (caricamento) return (
     <div className="flex items-center justify-center h-64 text-slate-500">Caricamento posizioni…</div>
   );
@@ -58,18 +358,18 @@ export default function PaginaPosizioni() {
   if (errore) return (
     <div className="flex flex-col items-center justify-center h-64 gap-3 text-red-600">
       <p>Errore: {errore}</p>
-      <button onClick={carica} className="text-sm bg-red-100 px-4 py-1.5 rounded-lg hover:bg-red-200 transition">Riprova</button>
+      <button onClick={carica} className="text-sm bg-red-100 px-4 py-1.5 rounded-lg hover:bg-red-200">Riprova</button>
     </div>
   );
 
   return (
     <div className="max-w-4xl mx-auto">
 
-      {/* Header pagina */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Posizioni aperte</h2>
-          <p className="text-sm text-slate-500 mt-0.5">{posizioni.length} posizione{posizioni.length !== 1 ? 'i' : 'e'} totali</p>
+          <p className="text-sm text-slate-500 mt-0.5">{posizioni.length} posizion{posizioni.length !== 1 ? 'i' : 'e'} totali</p>
         </div>
         <button
           onClick={() => { setMostraForm(true); setErroreForm(null); }}
@@ -119,16 +419,12 @@ export default function PaginaPosizioni() {
               </select>
             </div>
           </div>
-          {erroreForm && (
-            <p className="mt-3 text-sm text-red-600">{erroreForm}</p>
-          )}
+          {erroreForm && <p className="mt-3 text-sm text-red-600">{erroreForm}</p>}
           <div className="flex gap-2 mt-4 justify-end">
-            <button type="button" onClick={() => setMostraForm(false)}
-              className="text-sm text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-100 transition">
+            <button type="button" onClick={() => setMostraForm(false)} className="text-sm text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-100 transition">
               Annulla
             </button>
-            <button type="submit" disabled={invio}
-              className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-60">
+            <button type="submit" disabled={invio} className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-60">
               {invio ? 'Creazione…' : 'Crea posizione'}
             </button>
           </div>
@@ -148,7 +444,7 @@ export default function PaginaPosizioni() {
           {posizioni.map(pos => (
             <button
               key={pos.id}
-              onClick={() => setPosizioneSelezionata(pos)}
+              onClick={() => setPosizioneAperta(pos)}
               className="bg-white border border-slate-200 rounded-2xl p-5 text-left hover:shadow-md hover:border-blue-300 transition-all"
             >
               <div className="flex items-start justify-between gap-2">
@@ -172,21 +468,6 @@ export default function PaginaPosizioni() {
             </button>
           ))}
         </div>
-      )}
-
-      {/* Modale dettaglio */}
-      {posizioneSelezionata && (
-        <ModalePosizioneDettaglio
-          posizione={posizioneSelezionata}
-          onChiudi={() => setPosizioneSelezionata(null)}
-          onAggiornata={(aggiornata) => {
-            setPosizioni(prev => prev.map(p => p.id === aggiornata.id ? { ...aggiornata, num_candidati: p.num_candidati } : p));
-            setPosizioneSelezionata(aggiornata);
-          }}
-          onEliminata={(id) => {
-            setPosizioni(prev => prev.filter(p => p.id !== id));
-          }}
-        />
       )}
     </div>
   );

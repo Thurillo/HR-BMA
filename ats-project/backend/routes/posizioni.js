@@ -80,7 +80,8 @@ router.delete('/:id', async (req, res) => {
 router.get('/:id/candidati', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT c.id, c.first_name, c.last_name, c.current_role, c.macro_sector, c.status, c.email
+      SELECT c.id, c.first_name, c.last_name, c.current_role, c.macro_sector, c.email,
+             pc.status AS status_posizione
       FROM position_candidates pc
       JOIN candidates c ON c.id = pc.candidate_id
       WHERE pc.position_id = ?
@@ -94,16 +95,36 @@ router.get('/:id/candidati', async (req, res) => {
 
 // POST /api/posizioni/:id/candidati
 router.post('/:id/candidati', async (req, res) => {
-  const { candidate_id } = req.body;
+  const { candidate_id, status } = req.body;
   if (!candidate_id) return res.status(400).json({ errore: 'candidate_id obbligatorio' });
+  const statusValido = status || 'Nuovo';
   try {
     await pool.query(
-      'INSERT IGNORE INTO position_candidates (position_id, candidate_id) VALUES (?, ?)',
-      [req.params.id, candidate_id]
+      'INSERT IGNORE INTO position_candidates (position_id, candidate_id, status) VALUES (?, ?, ?)',
+      [req.params.id, candidate_id, statusValido]
     );
     res.status(201).json({ messaggio: 'Candidato aggiunto alla posizione' });
   } catch (err) {
     res.status(500).json({ errore: 'Errore aggiunta candidato', dettaglio: err.message });
+  }
+});
+
+// PUT /api/posizioni/:id/candidati/:cid/status
+router.put('/:id/candidati/:cid/status', async (req, res) => {
+  const { status } = req.body;
+  const statiValidi = ['Nuovo', '1° Colloquio', '2° Colloquio', 'Offerta', 'Assunto', 'Scartato'];
+  if (!status || !statiValidi.includes(status)) {
+    return res.status(400).json({ errore: 'Stato non valido' });
+  }
+  try {
+    const [result] = await pool.query(
+      'UPDATE position_candidates SET status = ? WHERE position_id = ? AND candidate_id = ?',
+      [status, req.params.id, req.params.cid]
+    );
+    if (result.affectedRows === 0) return res.status(404).json({ errore: 'Associazione non trovata' });
+    res.json({ messaggio: 'Stato aggiornato' });
+  } catch (err) {
+    res.status(500).json({ errore: 'Errore aggiornamento stato', dettaglio: err.message });
   }
 });
 
