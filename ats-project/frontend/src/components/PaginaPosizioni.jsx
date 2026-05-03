@@ -5,7 +5,7 @@ import {
   getCandidatiPosizione, aggiungiCandidatoPosizione, rimuoviCandidatoPosizione,
   aggiornStatusCandidatoPosizione,
 } from '../api/posizioni';
-import { getCandidati } from '../api/candidati';
+import { getCandidati, getCandidato } from '../api/candidati';
 import DettagliModale from './DettagliModale';
 
 const BADGE_STATO = {
@@ -60,6 +60,17 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
   const [eliminando, setEliminando]     = useState(false);
   const [cambiandoStato, setCambiandoStato] = useState(false);
   const [candidatoDettaglio, setCandidatoDettaglio] = useState(null);
+  const [caricandoDettaglio, setCaricandoDettaglio] = useState(null);
+
+  async function apriDettaglioCandidato(id) {
+    setCaricandoDettaglio(id);
+    try {
+      const completo = await getCandidato(id);
+      setCandidatoDettaglio(completo);
+    } finally {
+      setCaricandoDettaglio(null);
+    }
+  }
 
   async function cambiaStato(nuovoStato) {
     setCambiandoStato(true);
@@ -274,10 +285,13 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
                             >
                               <button
                                 onMouseDown={e => e.stopPropagation()}
-                                onClick={() => setCandidatoDettaglio(c)}
-                                className="w-full text-left"
+                                onClick={() => apriDettaglioCandidato(c.id)}
+                                disabled={caricandoDettaglio === c.id}
+                                className="w-full text-left disabled:opacity-60"
                               >
-                                <p className="font-semibold text-slate-800 leading-tight hover:text-blue-700 transition-colors">{c.first_name} {c.last_name}</p>
+                                <p className="font-semibold text-slate-800 leading-tight hover:text-blue-700 transition-colors">
+                                  {caricandoDettaglio === c.id ? '…' : `${c.first_name} ${c.last_name}`}
+                                </p>
                                 {c.current_role && <p className="text-slate-500 mt-0.5 truncate">{c.current_role}</p>}
                               </button>
                               <button
