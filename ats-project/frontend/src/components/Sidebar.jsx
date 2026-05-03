@@ -40,8 +40,8 @@ export default function Sidebar({ paginaAttiva, onChange }) {
       try {
         const res = await fetch(`${BASE_URL}/api/sistema/versione`);
         if (res.ok) {
-          const dati = await res.json();
-          setAggiornamentoDisponibile(dati.aggiornamento_disponibile);
+          const d = await res.json();
+          setAggiornamentoDisponibile(d.aggiornamento_disponibile);
         }
       } catch { /* silenzioso */ }
     }
@@ -49,27 +49,28 @@ export default function Sidebar({ paginaAttiva, onChange }) {
   }, []);
 
   return (
-    <aside className="w-60 shrink-0 bg-white border-r border-slate-200 flex flex-col py-3 shadow-sm z-10">
-      <p className="px-4 pt-1 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Menu</p>
+    <aside className="w-64 shrink-0 bg-white border-r-2 border-slate-200 flex flex-col py-6 px-3 gap-1"
+      style={{ boxShadow: '2px 0 8px rgba(0,0,0,0.04)' }}>
+
+      <p className="px-4 pb-3 text-xs font-black text-slate-400 uppercase tracking-widest">Navigazione</p>
+
       {VOCI.map(voce => {
         const attiva = paginaAttiva === voce.id;
         return (
-          <button
-            key={voce.id}
-            onClick={() => onChange(voce.id)}
-            className={`relative flex items-center gap-3 mx-3 px-3 py-3 rounded-xl text-sm font-medium transition-all text-left mb-0.5
+          <button key={voce.id} onClick={() => onChange(voce.id)}
+            className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all text-left
               ${attiva
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
           >
-            <span className={attiva ? 'text-white' : 'text-slate-400'}>
+            <span className={`shrink-0 ${attiva ? 'text-white' : 'text-slate-400'}`}>
               {voce.icona}
             </span>
-            <span className="flex-1 leading-none">{voce.etichetta}</span>
+            <span className="flex-1 leading-none tracking-tight">{voce.etichetta}</span>
             {voce.id === 'aggiornamenti' && aggiornamentoDisponibile && (
-              <span className={`w-2 h-2 rounded-full shrink-0 ${attiva ? 'bg-white' : 'bg-blue-500'}`}
-                title="Aggiornamento disponibile"/>
+              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${attiva ? 'bg-white' : 'bg-blue-500'}`}
+                title="Aggiornamento disponibile" />
             )}
           </button>
         );

@@ -324,40 +324,40 @@ export default function PaginaCandidati() {
       </div>
 
       {/* Tabella */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
+              <tr className="border-b-2 border-slate-200 bg-slate-50">
                 {COLONNE.map(col => (
                   <th key={col.key} onClick={() => toggleSort(col.key)}
-                    className="px-4 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap">
-                    <span className="flex items-center gap-1">
+                    className="px-6 py-5 text-left text-xs font-black text-slate-500 uppercase tracking-widest cursor-pointer select-none hover:text-blue-600 hover:bg-blue-50 transition whitespace-nowrap">
+                    <span className="flex items-center gap-1.5">
                       {col.label}
                       <IconSort attiva={sortKey === col.key} dir={sortKey === col.key ? sortDir : 'asc'} />
                     </span>
                   </th>
                 ))}
-                <th className="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Azioni</th>
+                <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest text-right">Azioni</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y-2 divide-slate-100">
               {ordinati.length === 0 ? (
                 <tr>
-                  <td colSpan={COLONNE.length + 1} className="text-center py-16 text-slate-400 text-sm">
+                  <td colSpan={COLONNE.length + 1} className="text-center py-20 text-slate-400 text-base">
                     Nessun candidato trovato
                   </td>
                 </tr>
               ) : ordinati.map(c => (
-                <tr key={c.id} className="hover:bg-blue-50/30 transition-colors group">
+                <tr key={c.id} className="hover:bg-blue-50/40 transition-colors">
                   {COLONNE.map(col => (
-                    <td key={col.key} className="px-4 py-3.5 text-slate-700 max-w-[200px]">
+                    <td key={col.key} className="px-6 py-5 max-w-[220px]">
                       {col.key === 'status' ? (
-                        <span className={`inline-flex text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${BADGE_STATUS[c.status] ?? 'bg-slate-100 text-slate-500'}`}>
+                        <span className={`inline-flex text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap ${BADGE_STATUS[c.status] ?? 'bg-slate-100 text-slate-600'}`}>
                           {c.status ?? '—'}
                         </span>
                       ) : col.key === 'last_name' || col.key === 'first_name' ? (
-                        <span className="font-medium text-slate-800 truncate block" title={c[col.key] ?? ''}>
+                        <span className="text-base font-bold text-slate-800 truncate block" title={c[col.key] ?? ''}>
                           {c[col.key] ?? <span className="text-slate-300 font-normal">—</span>}
                         </span>
                       ) : (
@@ -367,14 +367,14 @@ export default function PaginaCandidati() {
                       )}
                     </td>
                   ))}
-                  <td className="px-4 py-3.5 text-right">
+                  <td className="px-6 py-5 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button onClick={() => setSelezionato(c)}
-                        className="text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition whitespace-nowrap">
+                        className="text-sm font-bold text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 border-2 border-blue-200 hover:border-blue-600 px-4 py-2 rounded-xl transition whitespace-nowrap">
                         Apri scheda
                       </button>
                       <button onClick={() => setDaEliminare(c)}
-                        className="text-xs font-semibold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition whitespace-nowrap">
+                        className="text-sm font-bold text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border-2 border-red-200 hover:border-red-500 px-4 py-2 rounded-xl transition whitespace-nowrap">
                         Elimina
                       </button>
                     </div>
