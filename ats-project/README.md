@@ -182,7 +182,32 @@ VITE_API_URL=http://localhost:3001
 
 ## Schema Database — Riferimento Completo
 
-Tabella: `candidates` — Engine: InnoDB — Charset: `utf8mb4_unicode_ci`
+Eseguire nell'ordine: prima `database/schema.sql`, poi `database/schema_posizioni.sql`.
+
+### Tabella `positions`
+
+| Campo | Tipo | Obbligatorio | Note |
+|---|---|---|---|
+| `id` | `INT UNSIGNED` | — | PK auto-increment |
+| `titolo` | `VARCHAR(255)` | **Sì** | Nome della posizione lavorativa |
+| `descrizione` | `TEXT` | No | Descrizione estesa |
+| `stato` | `ENUM` | Sì | `Aperta`, `In pausa`, `Chiusa` — default: `Aperta` |
+| `created_at` | `TIMESTAMP` | — | Auto |
+| `updated_at` | `TIMESTAMP` | — | Auto |
+
+### Tabella `position_candidates` (associazione)
+
+| Campo | Tipo | Note |
+|---|---|---|
+| `position_id` | `INT UNSIGNED` | FK → `positions.id` (CASCADE DELETE) |
+| `candidate_id` | `INT UNSIGNED` | FK → `candidates.id` (CASCADE DELETE) |
+| `created_at` | `TIMESTAMP` | Auto |
+
+La chiave primaria è composta `(position_id, candidate_id)` — un candidato non può essere aggiunto due volte alla stessa posizione.
+
+---
+
+### Tabella `candidates` — Engine: InnoDB — Charset: `utf8mb4_unicode_ci`
 
 ### Campi Anagrafici Base
 
@@ -246,6 +271,24 @@ Tabella: `candidates` — Engine: InnoDB — Charset: `utf8mb4_unicode_ci`
 ## API Endpoints — Riferimento Completo
 
 Base URL: `http://<ip-server>:3001`
+
+### Riepilogo
+
+| Metodo | Percorso | Descrizione |
+|---|---|---|
+| `GET` | `/api/candidates` | Recupera tutti i candidati |
+| `PUT` | `/api/candidates/:id/status` | Aggiorna stato Kanban |
+| `PUT` | `/api/candidates/:id` | Aggiorna anagrafica completa |
+| `POST` | `/api/candidates` | Inserimento da n8n |
+| `GET` | `/api/posizioni` | Lista posizioni (con conteggio candidati) |
+| `POST` | `/api/posizioni` | Crea nuova posizione |
+| `PUT` | `/api/posizioni/:id` | Modifica posizione |
+| `DELETE` | `/api/posizioni/:id` | Elimina posizione |
+| `GET` | `/api/posizioni/:id/candidati` | Candidati associati |
+| `POST` | `/api/posizioni/:id/candidati` | Associa candidato |
+| `DELETE` | `/api/posizioni/:id/candidati/:cid` | Rimuove associazione |
+| `GET` | `/api/sistema/versione` | Verifica aggiornamenti |
+| `POST` | `/api/sistema/aggiorna` | Avvia aggiornamento |
 
 ---
 
