@@ -263,53 +263,53 @@ export default function PaginaCandidati() {
   if (errore) return (
     <div className="flex flex-col items-center justify-center h-64 gap-3 text-red-600">
       <p>Errore: {errore}</p>
-      <button onClick={carica} className="text-sm bg-red-100 px-4 py-1.5 rounded-lg hover:bg-red-200">Riprova</button>
+      <button onClick={carica} className="text-sm bg-red-100 px-4 py-1.5 rounded-xl hover:bg-red-200 transition">Riprova</button>
     </div>
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
 
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Candidati</h2>
-          <p className="text-sm text-slate-500 mt-0.5">{filtrati.length} di {candidati.length} candidati</p>
+          <h2 className="text-2xl font-bold text-slate-800">Candidati</h2>
+          <p className="text-sm text-slate-400 mt-0.5">
+            {filtrati.length === candidati.length
+              ? `${candidati.length} candidati totali`
+              : `${filtrati.length} di ${candidati.length} candidati`}
+          </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <input
-            type="text"
-            value={filtro}
-            onChange={e => setFiltro(e.target.value)}
-            placeholder="Cerca per nome, ruolo, settore…"
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-56"
-          />
-          <button
-            onClick={esporta}
-            title="Esporta tutti i candidati in JSON"
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-slate-100 px-3 py-2 rounded-xl hover:bg-slate-200 transition shrink-0"
-          >
+          <div className="relative">
+            <svg className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+            </svg>
+            <input
+              type="text"
+              value={filtro}
+              onChange={e => setFiltro(e.target.value)}
+              placeholder="Cerca candidati…"
+              className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-52 shadow-sm"
+            />
+          </div>
+          <button onClick={esporta} title="Esporta tutti i candidati in JSON"
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-3 py-2 rounded-xl hover:bg-slate-50 transition shadow-sm shrink-0">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 8l-3-3m3 3l3-3"/>
             </svg>
-            Esporta JSON
+            Esporta
           </button>
-          <button
-            onClick={() => inputFileRef.current?.click()}
-            disabled={importando}
-            title="Importa candidati da file JSON"
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-slate-100 px-3 py-2 rounded-xl hover:bg-slate-200 transition shrink-0 disabled:opacity-60"
-          >
+          <button onClick={() => inputFileRef.current?.click()} disabled={importando} title="Importa candidati da file JSON"
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-3 py-2 rounded-xl hover:bg-slate-50 transition shadow-sm shrink-0 disabled:opacity-60">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12l-3 3m3-3l3 3"/>
             </svg>
-            {importando ? 'Importazione…' : 'Importa JSON'}
+            {importando ? 'Importazione…' : 'Importa'}
           </button>
           <input ref={inputFileRef} type="file" accept=".json" className="hidden" onChange={onFileImport} />
-          <button
-            onClick={() => setMostraNuovo(true)}
-            className="flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-blue-700 transition shrink-0"
-          >
+          <button onClick={() => setMostraNuovo(true)}
+            className="flex items-center gap-1.5 bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-blue-700 transition shadow-sm shrink-0">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
             </svg>
@@ -317,7 +317,7 @@ export default function PaginaCandidati() {
           </button>
         </div>
         {msgImport && (
-          <div className={`text-xs px-3 py-1.5 rounded-lg ${msgImport.tipo === 'ok' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+          <div className={`w-full text-sm px-4 py-2.5 rounded-xl border ${msgImport.tipo === 'ok' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
             {msgImport.testo}
           </div>
         )}
@@ -326,55 +326,58 @@ export default function PaginaCandidati() {
       {/* Tabella */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50">
                 {COLONNE.map(col => (
-                  <th
-                    key={col.key}
-                    onClick={() => toggleSort(col.key)}
-                    className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide cursor-pointer select-none hover:text-slate-700 whitespace-nowrap"
-                  >
-                    {col.label}
-                    <IconSort attiva={sortKey === col.key} dir={sortKey === col.key ? sortDir : 'asc'} />
+                  <th key={col.key} onClick={() => toggleSort(col.key)}
+                    className="px-4 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap">
+                    <span className="flex items-center gap-1">
+                      {col.label}
+                      <IconSort attiva={sortKey === col.key} dir={sortKey === col.key ? sortDir : 'asc'} />
+                    </span>
                   </th>
                 ))}
-                <th className="px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Azioni</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Azioni</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {ordinati.length === 0 ? (
                 <tr>
-                  <td colSpan={COLONNE.length + 1} className="text-center py-12 text-slate-400">
+                  <td colSpan={COLONNE.length + 1} className="text-center py-16 text-slate-400 text-sm">
                     Nessun candidato trovato
                   </td>
                 </tr>
               ) : ordinati.map(c => (
-                <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={c.id} className="hover:bg-blue-50/30 transition-colors group">
                   {COLONNE.map(col => (
-                    <td key={col.key} className="px-3 py-2.5 text-slate-700 max-w-[180px] truncate">
+                    <td key={col.key} className="px-4 py-3.5 text-slate-700 max-w-[200px]">
                       {col.key === 'status' ? (
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${BADGE_STATUS[c.status] ?? 'bg-slate-100 text-slate-500'}`}>
+                        <span className={`inline-flex text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${BADGE_STATUS[c.status] ?? 'bg-slate-100 text-slate-500'}`}>
                           {c.status ?? '—'}
                         </span>
+                      ) : col.key === 'last_name' || col.key === 'first_name' ? (
+                        <span className="font-medium text-slate-800 truncate block" title={c[col.key] ?? ''}>
+                          {c[col.key] ?? <span className="text-slate-300 font-normal">—</span>}
+                        </span>
                       ) : (
-                        <span title={c[col.key] ?? ''}>{c[col.key] ?? <span className="text-slate-300">—</span>}</span>
+                        <span className="text-sm text-slate-600 truncate block" title={c[col.key] ?? ''}>
+                          {c[col.key] ?? <span className="text-slate-300">—</span>}
+                        </span>
                       )}
                     </td>
                   ))}
-                  <td className="px-3 py-2.5 text-right whitespace-nowrap">
-                    <button
-                      onClick={() => setSelezionato(c)}
-                      className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-50 transition"
-                    >
-                      Modifica
-                    </button>
-                    <button
-                      onClick={() => setDaEliminare(c)}
-                      className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50 transition ml-1"
-                    >
-                      Elimina
-                    </button>
+                  <td className="px-4 py-3.5 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => setSelezionato(c)}
+                        className="text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition whitespace-nowrap">
+                        Apri scheda
+                      </button>
+                      <button onClick={() => setDaEliminare(c)}
+                        className="text-xs font-semibold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition whitespace-nowrap">
+                        Elimina
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
