@@ -12,16 +12,12 @@ const eseguiCmd = promisify(exec);
 const ROOT = path.resolve(fileURLToPath(import.meta.url), '../../../');
 const BRANCH_AGGIORNAMENTO = 'main';
 
-// Stato condiviso dell'aggiornamento in corso (una sola istanza alla volta)
 let aggiornaInCorso = false;
 
 async function leggiVersione() {
   try {
-    const testo = await readFile(path.join(ROOT, 'VERSION'), 'utf8');
-    return testo.trim();
-  } catch {
-    return 'sconosciuta';
-  }
+    return (await readFile(path.join(ROOT, 'VERSION'), 'utf8')).trim();
+  } catch { return 'sconosciuta'; }
 }
 
 async function commitLocale() {
@@ -29,14 +25,14 @@ async function commitLocale() {
   return stdout.trim();
 }
 
-async function commitRemoto(branch) {
-  await eseguiCmd(`git fetch origin ${branch} --quiet`, { cwd: ROOT });
-  const { stdout } = await eseguiCmd(`git rev-parse origin/${branch}`, { cwd: ROOT });
+async function branchCorrente() {
+  const { stdout } = await eseguiCmd('git rev-parse --abbrev-ref HEAD', { cwd: ROOT });
   return stdout.trim();
 }
 
-async function branchCorrente() {
-  const { stdout } = await eseguiCmd('git rev-parse --abbrev-ref HEAD', { cwd: ROOT });
+async function commitRemoto(branch) {
+  await eseguiCmd(`git fetch origin ${branch} --quiet`, { cwd: ROOT, timeout: 15000 });
+  const { stdout } = await eseguiCmd(`git rev-parse origin/${branch}`, { cwd: ROOT });
   return stdout.trim();
 }
 
@@ -50,8 +46,30 @@ router.get('/stato', async (req, res) => {
   }
 });
 
-// ── GET /api/sistema/versione ────────────────────────────────────────────────
+// ── GET /api/sistema/versione ─────────────────────────────────────────────────
+// Restituisce SOLO le informazioni locali — risponde sempre, senza accesso a rete
 router.get('/versione', async (req, res) => {
+  try {
+    const [versione, locale, branchAttuale] = await Promise.all([
+      leggiVersione(),
+      commitLocale(),
+      branchCorrente(),
+    ]);
+    res.json({
+      versione,
+      branch_locale: branchAttuale,
+      branch_aggiornamento: BRANCH_AGGIORNAMENTO,
+      commit_locale: locale.slice(0, 7),
+      aggiorna_in_corso: aggiornaInCorso,
+    });
+  } catch (err) {
+    res.status(500).json({ errore: 'Errore lettura versione locale', dettaglio: err.message });
+  }
+});
+
+// ── GET /api/sistema/controlla ────────────────────────────────────────────────
+// Fa il fetch da GitHub e confronta i commit — può fallire se rete/credenziali assenti
+router.get('/controlla', async (req, res) => {
   try {
     const [versione, locale, remoto, branchAttuale] = await Promise.all([
       leggiVersione(),
@@ -69,23 +87,24 @@ router.get('/versione', async (req, res) => {
       aggiorna_in_corso: aggiornaInCorso,
     });
   } catch (err) {
-    res.status(500).json({ errore: 'Impossibile verificare aggiornamenti', dettaglio: err.message });
+    res.status(503).json({
+      errore: 'Impossibile raggiungere GitHub',
+      dettaglio: err.message,
+    });
   }
 });
 
 // ── GET /api/sistema/aggiorna/stream ─────────────────────────────────────────
-// Server-Sent Events: avvia l'aggiornamento e trasmette i log in tempo reale
 router.get('/aggiorna/stream', async (req, res) => {
   if (aggiornaInCorso) {
     res.status(409).json({ errore: 'Aggiornamento già in corso' });
     return;
   }
 
-  // Intestazioni SSE
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no'); // disabilita buffering nginx
+  res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
   const invia = (messaggio, tipo = 'log') => {
@@ -97,7 +116,7 @@ router.get('/aggiorna/stream', async (req, res) => {
 
   try {
     invia('Connessione a GitHub…');
-    await eseguiCmd(`git fetch origin ${BRANCH_AGGIORNAMENTO} --quiet`, { cwd: ROOT });
+    await eseguiCmd(`git fetch origin ${BRANCH_AGGIORNAMENTO} --quiet`, { cwd: ROOT, timeout: 30000 });
     invia('✓ Repository raggiunto');
 
     invia(`Passaggio al branch ${BRANCH_AGGIORNAMENTO}…`);
@@ -115,18 +134,17 @@ router.get('/aggiorna/stream', async (req, res) => {
     await eseguiCmd('npm install --silent', { cwd: path.join(ROOT, 'frontend') });
     invia('✓ Dipendenze frontend aggiornate');
 
-    invia('Build frontend in produzione (potrebbe richiedere qualche minuto)…');
+    invia('Build frontend in produzione (può richiedere qualche minuto)…');
     await eseguiCmd('npm run build --silent', {
       cwd: path.join(ROOT, 'frontend'),
-      env: { ...process.env, NODE_ENV: 'production' },
-      timeout: 300000, // 5 minuti max
+      env: { ...process.env, NODE_ENV: 'production', VITE_API_URL: '' },
+      timeout: 300000,
     });
     invia('✓ Frontend compilato con successo');
 
     invia('Riavvio del servizio…', 'completato');
     res.end();
 
-    // Riavvio dopo aver chiuso la connessione SSE
     setTimeout(() => {
       eseguiCmd('systemctl restart ats-backend').catch(() => process.exit(0));
     }, 500);
