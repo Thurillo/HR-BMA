@@ -35,9 +35,12 @@ async function branchCorrente() {
 }
 
 async function commitRemoto(branch) {
-  await eseguiCmd(`${GIT} fetch origin ${branch} --quiet`, { cwd: ROOT, timeout: 15000 });
-  const { stdout } = await eseguiCmd(`${GIT} rev-parse origin/${branch}`, { cwd: ROOT });
-  return stdout.trim();
+  // ls-remote legge il commit dal server senza scrivere nulla su disco,
+  // evitando il problema di permessi su .git/FETCH_HEAD.
+  const { stdout } = await eseguiCmd(`${GIT} ls-remote origin refs/heads/${branch}`, { cwd: ROOT, timeout: 15000 });
+  const commit = stdout.trim().split(/\s+/)[0];
+  if (!commit) throw new Error(`Branch ${branch} non trovato su origin`);
+  return commit;
 }
 
 // ── GET /api/sistema/stato ────────────────────────────────────────────────────
@@ -117,6 +120,8 @@ router.get('/aggiorna/stream', async (req, res) => {
 
   try {
     invia('Connessione a GitHub…');
+    // Garantisce che il processo corrente possa scrivere nella cartella .git
+    await eseguiCmd(`chmod -R u+w ${path.join(ROOT, '.git')}`, { cwd: ROOT }).catch(() => {});
     await eseguiCmd(`${GIT} fetch origin ${BRANCH_AGGIORNAMENTO} --quiet`, { cwd: ROOT, timeout: 30000 });
     invia('✓ Repository raggiunto');
 
