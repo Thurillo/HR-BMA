@@ -1,6 +1,12 @@
 // In produzione (nginx) l'URL è relativo; in sviluppo usa la variabile d'ambiente
 const BASE_URL = import.meta.env.VITE_API_URL ?? '';
 
+export async function getCandidato(id) {
+  const res = await fetch(`${BASE_URL}/api/candidates/${id}`);
+  if (!res.ok) throw new Error('Errore nel caricamento del candidato');
+  return res.json();
+}
+
 export async function getCandidati() {
   const res = await fetch(`${BASE_URL}/api/candidates`);
   if (!res.ok) throw new Error('Errore nel caricamento dei candidati');

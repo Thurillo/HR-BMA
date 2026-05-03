@@ -99,6 +99,17 @@ app.put('/api/candidates/:id', async (req, res) => {
   }
 });
 
+// GET /api/candidates/:id — recupera un singolo candidato completo
+app.get('/api/candidates/:id', async (req, res) => {
+  try {
+    const [[candidato]] = await pool.query('SELECT * FROM candidates WHERE id = ?', [req.params.id]);
+    if (!candidato) return res.status(404).json({ errore: 'Candidato non trovato' });
+    res.json(candidato);
+  } catch (err) {
+    res.status(500).json({ errore: 'Errore nel recupero del candidato', dettaglio: err.message });
+  }
+});
+
 // DELETE /api/candidates/:id — elimina un candidato
 app.delete('/api/candidates/:id', async (req, res) => {
   try {
