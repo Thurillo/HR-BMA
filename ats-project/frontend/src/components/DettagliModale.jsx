@@ -87,7 +87,7 @@ function CampoVista({ chiave, valore }) {
   } else if ((chiave === 'linkedin_url' || chiave === 'portfolio_url') && String(parsed).startsWith('http')) {
     contenuto = (
       <a href={parsed} target="_blank" rel="noreferrer"
-        className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline text-base mt-2 break-all">
+        className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 hover:underline text-base mt-2 break-all">
         {parsed}
         <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -110,7 +110,7 @@ function CampoVista({ chiave, valore }) {
 function CampoModifica({ chiave, valore, onChange }) {
   const etichetta = ETICHETTE[chiave] || chiave;
   const isFull = ['executive_summary', 'file_path_smb'].includes(chiave);
-  const cls = "mt-2 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-base text-slate-800 placeholder-slate-300 focus:outline-none focus:border-blue-500 focus:ring-0 transition";
+  const cls = "mt-2 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-base text-slate-800 placeholder-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-0 transition";
 
   let campo;
   if (chiave === 'status') {
@@ -277,7 +277,8 @@ export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
                     Annulla
                   </button>
                   <button onClick={salva} disabled={salvataggio}
-                    className="flex items-center gap-2 text-sm font-bold bg-blue-500 hover:bg-blue-400 text-white px-5 py-2.5 rounded-xl transition shadow disabled:opacity-60">
+                    className="flex items-center gap-2 text-sm font-bold text-white px-5 py-2.5 rounded-xl transition shadow disabled:opacity-60"
+                    style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}>
                     {salvataggio
                       ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Salvataggio…</>
                       : '✓ Salva modifiche'}
@@ -405,7 +406,7 @@ export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
                 <div className="px-7 py-6">
                   <textarea rows={5} value={form.note ?? ''} onChange={e => aggiornaForm('note', e.target.value)}
                     placeholder="Aggiungi note, osservazioni, impressioni sul candidato…"
-                    className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-base text-slate-800 placeholder-slate-300 resize-y focus:outline-none focus:border-blue-500 transition"
+                    className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-base text-slate-800 placeholder-slate-300 resize-y focus:outline-none focus:border-indigo-500 transition"
                   />
                 </div>
               </div>

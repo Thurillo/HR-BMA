@@ -205,13 +205,14 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
           value={posizione.stato}
           onChange={e => cambiaStato(e.target.value)}
           disabled={cambiandoStato}
-          className={`text-xs font-semibold px-2 py-1 rounded-lg border cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60 ${BADGE_STATO[posizione.stato]}`}
+          className={`text-xs font-semibold px-2 py-1 rounded-lg border cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-60 ${BADGE_STATO[posizione.stato]}`}
         >
           {STATI_POSIZIONE.map(s => <option key={s}>{s}</option>)}
         </select>
         <button
           onClick={apriAggiungi}
-          className="flex items-center gap-1.5 text-sm font-medium bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center gap-1.5 text-sm font-semibold text-white px-3.5 py-2 rounded-xl transition shadow-sm"
+          style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
@@ -247,7 +248,7 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
             onChange={e => setCercaAgg(e.target.value)}
             placeholder="Cerca per nome, ruolo…"
             autoFocus
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
           <div className="max-h-56 overflow-y-auto divide-y divide-slate-100">
             {candidatiDisponibili.length === 0 ? (
@@ -261,7 +262,7 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
                 <button
                   onClick={() => aggiungi(c.id)}
                   disabled={aggiungendo === c.id}
-                  className="text-xs font-medium text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg hover:bg-blue-50 transition disabled:opacity-50"
+                  className="text-xs font-medium text-indigo-600 hover:text-indigo-800 px-3 py-1 rounded-lg hover:bg-indigo-50 transition disabled:opacity-50"
                 >
                   {aggiungendo === c.id ? '…' : 'Aggiungi'}
                 </button>
@@ -282,7 +283,7 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
           value={nota}
           onChange={e => salvaNotaDebounced(e.target.value)}
           placeholder="Scrivi note, requisiti, dettagli o qualsiasi informazione sulla posizione…"
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 resize-y focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 resize-y focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
       </div>
 
@@ -303,7 +304,7 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`flex flex-col gap-2 min-h-[80px] rounded-xl p-2 transition-colors ${snapshot.isDraggingOver ? 'bg-blue-50' : 'bg-slate-50'}`}
+                      className={`flex flex-col gap-2 min-h-[80px] rounded-xl p-2 transition-colors ${snapshot.isDraggingOver ? 'bg-indigo-50' : 'bg-slate-50'}`}
                     >
                       {(colonneMap[col] || []).map((c, idx) => (
                         <Draggable key={c.id} draggableId={String(c.id)} index={idx}>
@@ -463,13 +464,11 @@ export default function PaginaPosizioni() {
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Posizioni aperte</h2>
-          <p className="text-sm text-slate-500 mt-0.5">{posizioni.length} posizion{posizioni.length !== 1 ? 'i' : 'e'} totali</p>
-        </div>
+        <p className="text-sm text-slate-400">{posizioni.length} posizion{posizioni.length !== 1 ? 'i' : 'e'}</p>
         <button
           onClick={() => { setMostraForm(true); setErroreForm(null); }}
-          className="flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-blue-700 transition"
+          className="flex items-center gap-2 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-sm"
+          style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
@@ -490,7 +489,7 @@ export default function PaginaPosizioni() {
                 value={form.titolo}
                 onChange={e => setForm(p => ({ ...p, titolo: e.target.value }))}
                 placeholder="es. Senior Backend Developer"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 autoFocus
               />
             </div>
@@ -501,7 +500,7 @@ export default function PaginaPosizioni() {
                 value={form.descrizione}
                 onChange={e => setForm(p => ({ ...p, descrizione: e.target.value }))}
                 placeholder="Descrizione della posizione, requisiti, note…"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
             <div>
@@ -509,7 +508,7 @@ export default function PaginaPosizioni() {
               <select
                 value={form.stato}
                 onChange={e => setForm(p => ({ ...p, stato: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               >
                 {STATI_POSIZIONE.map(s => <option key={s}>{s}</option>)}
               </select>
@@ -520,7 +519,7 @@ export default function PaginaPosizioni() {
             <button type="button" onClick={() => setMostraForm(false)} className="text-sm text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-100 transition">
               Annulla
             </button>
-            <button type="submit" disabled={invio} className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-60">
+            <button type="submit" disabled={invio} className="text-sm font-medium bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition disabled:opacity-60">
               {invio ? 'Creazione…' : 'Crea posizione'}
             </button>
           </div>
@@ -541,7 +540,7 @@ export default function PaginaPosizioni() {
             <button
               key={pos.id}
               onClick={() => setPosizioneAperta(pos)}
-              className="bg-white border border-slate-200 rounded-2xl p-5 text-left hover:shadow-md hover:border-blue-300 transition-all"
+              className="bg-white border border-slate-200 rounded-2xl p-5 text-left hover:shadow-md hover:border-indigo-300 transition-all"
             >
               <div className="flex items-start justify-between gap-2">
                 <h3 className="text-sm font-bold text-slate-800 leading-snug">{pos.titolo}</h3>
