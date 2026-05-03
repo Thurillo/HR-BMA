@@ -136,6 +136,12 @@ systemctl enable ats-backend > /dev/null 2>&1
 systemctl restart ats-backend
 ok "Servizio ats-backend avviato e abilitato all'avvio"
 
+# ── Fix Git "dubious ownership" ──────────────────────────────────────────────
+# Il servizio gira con un utente diverso dal proprietario della cartella;
+# senza questa riga git rifiuta di operare sulla repo.
+git config --global --add safe.directory "$SCRIPT_DIR"
+ok "Git safe.directory configurato"
+
 # ════════════════════════════════════════════════════════════
 #  STEP 7 — Serve frontend statico con nginx (opzionale)
 # ════════════════════════════════════════════════════════════

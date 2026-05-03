@@ -12,6 +12,10 @@ const eseguiCmd = promisify(exec);
 const ROOT = path.resolve(fileURLToPath(import.meta.url), '../../../');
 const BRANCH_AGGIORNAMENTO = 'main';
 
+// Git "dubious ownership": il processo Node gira con utente diverso dal proprietario
+// della cartella. -c safe.directory=* bypassa il controllo per tutti i comandi git.
+const GIT = 'git -c safe.directory=*';
+
 let aggiornaInCorso = false;
 
 async function leggiVersione() {
@@ -21,18 +25,18 @@ async function leggiVersione() {
 }
 
 async function commitLocale() {
-  const { stdout } = await eseguiCmd('git rev-parse HEAD', { cwd: ROOT });
+  const { stdout } = await eseguiCmd(`${GIT} rev-parse HEAD`, { cwd: ROOT });
   return stdout.trim();
 }
 
 async function branchCorrente() {
-  const { stdout } = await eseguiCmd('git rev-parse --abbrev-ref HEAD', { cwd: ROOT });
+  const { stdout } = await eseguiCmd(`${GIT} rev-parse --abbrev-ref HEAD`, { cwd: ROOT });
   return stdout.trim();
 }
 
 async function commitRemoto(branch) {
-  await eseguiCmd(`git fetch origin ${branch} --quiet`, { cwd: ROOT, timeout: 15000 });
-  const { stdout } = await eseguiCmd(`git rev-parse origin/${branch}`, { cwd: ROOT });
+  await eseguiCmd(`${GIT} fetch origin ${branch} --quiet`, { cwd: ROOT, timeout: 15000 });
+  const { stdout } = await eseguiCmd(`${GIT} rev-parse origin/${branch}`, { cwd: ROOT });
   return stdout.trim();
 }
 
@@ -47,7 +51,7 @@ router.get('/stato', async (req, res) => {
 });
 
 // ── GET /api/sistema/versione ─────────────────────────────────────────────────
-// Restituisce SOLO le informazioni locali — risponde sempre, senza accesso a rete
+// Dati locali — risponde sempre, senza accesso a rete
 router.get('/versione', async (req, res) => {
   try {
     const [versione, locale, branchAttuale] = await Promise.all([
@@ -68,7 +72,7 @@ router.get('/versione', async (req, res) => {
 });
 
 // ── GET /api/sistema/controlla ────────────────────────────────────────────────
-// Fa il fetch da GitHub e confronta i commit — può fallire se rete/credenziali assenti
+// Fa il fetch da GitHub e confronta i commit
 router.get('/controlla', async (req, res) => {
   try {
     const [versione, locale, remoto, branchAttuale] = await Promise.all([
@@ -87,10 +91,7 @@ router.get('/controlla', async (req, res) => {
       aggiorna_in_corso: aggiornaInCorso,
     });
   } catch (err) {
-    res.status(503).json({
-      errore: 'Impossibile raggiungere GitHub',
-      dettaglio: err.message,
-    });
+    res.status(503).json({ errore: 'Impossibile raggiungere GitHub', dettaglio: err.message });
   }
 });
 
@@ -116,14 +117,14 @@ router.get('/aggiorna/stream', async (req, res) => {
 
   try {
     invia('Connessione a GitHub…');
-    await eseguiCmd(`git fetch origin ${BRANCH_AGGIORNAMENTO} --quiet`, { cwd: ROOT, timeout: 30000 });
+    await eseguiCmd(`${GIT} fetch origin ${BRANCH_AGGIORNAMENTO} --quiet`, { cwd: ROOT, timeout: 30000 });
     invia('✓ Repository raggiunto');
 
     invia(`Passaggio al branch ${BRANCH_AGGIORNAMENTO}…`);
-    await eseguiCmd(`git checkout ${BRANCH_AGGIORNAMENTO}`, { cwd: ROOT });
+    await eseguiCmd(`${GIT} checkout ${BRANCH_AGGIORNAMENTO}`, { cwd: ROOT });
 
     invia('Applicazione aggiornamenti…');
-    const { stdout: pullOut } = await eseguiCmd(`git reset --hard origin/${BRANCH_AGGIORNAMENTO}`, { cwd: ROOT });
+    const { stdout: pullOut } = await eseguiCmd(`${GIT} reset --hard origin/${BRANCH_AGGIORNAMENTO}`, { cwd: ROOT });
     invia(`✓ ${pullOut.trim()}`);
 
     invia('Aggiornamento dipendenze backend…');
