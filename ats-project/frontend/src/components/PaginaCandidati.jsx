@@ -268,10 +268,10 @@ export default function PaginaCandidati() {
   );
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-4 flex-wrap">
         <p className="text-sm text-slate-400 mr-auto">
           {filtrati.length === candidati.length
             ? `${candidati.length} candidati`
@@ -286,18 +286,18 @@ export default function PaginaCandidati() {
             value={filtro}
             onChange={e => setFiltro(e.target.value)}
             placeholder="Cerca candidati…"
-            className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 w-52 shadow-sm transition"
+            className="pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 w-56 shadow-sm transition"
           />
         </div>
         <button onClick={esporta} title="Esporta tutti i candidati in JSON"
-          className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-3.5 py-2 rounded-xl hover:bg-slate-50 transition shadow-sm shrink-0">
+          className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition shadow-sm shrink-0">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 8l-3-3m3 3l3-3"/>
           </svg>
           Esporta
         </button>
         <button onClick={() => inputFileRef.current?.click()} disabled={importando} title="Importa candidati da file JSON"
-          className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-3.5 py-2 rounded-xl hover:bg-slate-50 transition shadow-sm shrink-0 disabled:opacity-60">
+          className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition shadow-sm shrink-0 disabled:opacity-60">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12l-3 3m3-3l3 3"/>
           </svg>
@@ -305,7 +305,7 @@ export default function PaginaCandidati() {
         </button>
         <input ref={inputFileRef} type="file" accept=".json" className="hidden" onChange={onFileImport} />
         <button onClick={() => setMostraNuovo(true)}
-          className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl text-white transition shadow-sm shrink-0"
+          className="flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-xl text-white transition shadow-sm shrink-0"
           style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
@@ -320,24 +320,24 @@ export default function PaginaCandidati() {
       </div>
 
       {/* Tabella */}
-      <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b-2 border-slate-200 bg-slate-50">
+              <tr className="border-b border-slate-200 bg-slate-50/80">
                 {COLONNE.map(col => (
                   <th key={col.key} onClick={() => toggleSort(col.key)}
-                    className="px-6 py-5 text-left text-xs font-black text-slate-500 uppercase tracking-widest cursor-pointer select-none hover:text-indigo-600 hover:bg-indigo-50/50 transition whitespace-nowrap">
+                    className="px-7 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-widest cursor-pointer select-none hover:text-indigo-600 hover:bg-indigo-50/50 transition whitespace-nowrap">
                     <span className="flex items-center gap-1.5">
                       {col.label}
                       <IconSort attiva={sortKey === col.key} dir={sortKey === col.key ? sortDir : 'asc'} />
                     </span>
                   </th>
                 ))}
-                <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest text-right">Azioni</th>
+                <th className="px-7 py-4 text-xs font-black text-slate-500 uppercase tracking-widest text-right">Azioni</th>
               </tr>
             </thead>
-            <tbody className="divide-y-2 divide-slate-100">
+            <tbody className="divide-y divide-slate-100">
               {ordinati.length === 0 ? (
                 <tr>
                   <td colSpan={COLONNE.length + 1} className="text-center py-20 text-slate-400 text-base">
@@ -347,7 +347,7 @@ export default function PaginaCandidati() {
               ) : ordinati.map(c => (
                 <tr key={c.id} className="hover:bg-indigo-50/30 transition-colors">
                   {COLONNE.map(col => (
-                    <td key={col.key} className="px-6 py-5 max-w-[220px]">
+                    <td key={col.key} className="px-7 py-5 max-w-[220px]">
                       {col.key === 'status' ? (
                         <span className={`inline-flex text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap ${BADGE_STATUS[c.status] ?? 'bg-slate-100 text-slate-600'}`}>
                           {c.status ?? '—'}
@@ -363,7 +363,7 @@ export default function PaginaCandidati() {
                       )}
                     </td>
                   ))}
-                  <td className="px-6 py-5 text-right">
+                  <td className="px-7 py-5 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button onClick={() => setSelezionato(c)}
                         className="text-sm font-bold text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 border border-indigo-200 hover:border-indigo-600 px-4 py-2 rounded-xl transition whitespace-nowrap">

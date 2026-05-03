@@ -46,7 +46,7 @@ export default function Sidebar({ paginaAttiva, onChange }) {
     <aside className="w-64 shrink-0 flex flex-col" style={{ background: '#0f172a' }}>
 
       {/* Brand */}
-      <div className="px-6 py-6 border-b border-white/8">
+      <div className="px-6 py-7 border-b border-white/8">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}>
@@ -62,13 +62,13 @@ export default function Sidebar({ paginaAttiva, onChange }) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
-        <p className="px-3 pt-1 pb-3 text-xs font-bold text-slate-600 uppercase tracking-widest">Menu</p>
+      <nav className="flex-1 px-4 py-6 flex flex-col gap-1.5">
+        <p className="px-3 pb-4 text-xs font-bold text-slate-600 uppercase tracking-widest">Menu</p>
         {VOCI.map(voce => {
           const attiva = paginaAttiva === voce.id;
           return (
             <button key={voce.id} onClick={() => onChange(voce.id)}
-              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all text-left
+              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-semibold transition-all text-left
                 ${attiva
                   ? 'text-white'
                   : 'text-slate-400 hover:text-white hover:bg-white/6'
@@ -86,7 +86,7 @@ export default function Sidebar({ paginaAttiva, onChange }) {
       </nav>
 
       {/* Footer */}
-      <div className="px-6 py-4 border-t border-white/8">
+      <div className="px-6 py-5 border-t border-white/8">
         <p className="text-xs text-slate-600">© 2026 HR-BMA</p>
       </div>
     </aside>
