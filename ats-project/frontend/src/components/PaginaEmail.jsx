@@ -7,13 +7,22 @@ import {
 const FASI = ['Nuovo', '1° Colloquio', '2° Colloquio', 'Offerta', 'Assunto', 'Scartato'];
 const MAX_PER_FASE = 10;
 
-const BADGE_FASE = {
-  'Nuovo':          'bg-slate-100 text-slate-700',
-  '1° Colloquio':   'bg-blue-100 text-blue-800',
-  '2° Colloquio':   'bg-indigo-100 text-indigo-800',
-  'Offerta':        'bg-amber-100 text-amber-800',
-  'Assunto':        'bg-emerald-100 text-emerald-800',
-  'Scartato':       'bg-red-100 text-red-700',
+const ACCENT_FASE = {
+  'Nuovo':          'border-slate-400',
+  '1° Colloquio':   'border-blue-400',
+  '2° Colloquio':   'border-indigo-400',
+  'Offerta':        'border-amber-400',
+  'Assunto':        'border-emerald-400',
+  'Scartato':       'border-red-400',
+};
+
+const DOT_FASE = {
+  'Nuovo':          'bg-slate-400',
+  '1° Colloquio':   'bg-blue-500',
+  '2° Colloquio':   'bg-indigo-500',
+  'Offerta':        'bg-amber-500',
+  'Assunto':        'bg-emerald-500',
+  'Scartato':       'bg-red-500',
 };
 
 const SEGNAPOSTO = ['{{nome}}', '{{cognome}}', '{{email}}', '{{telefono}}', '{{ruolo_candidato}}', '{{posizione}}'];
@@ -54,18 +63,18 @@ function ModaleForm({ modello, onSalva, onChiudi, conteggioPerFase }) {
 
   const limiteRaggiunto = !modifica && (conteggioPerFase[form.fase] ?? 0) >= MAX_PER_FASE;
 
-  const cls = "w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition bg-white";
+  const cls = "w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition bg-white";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
 
         <div className="flex items-center justify-between px-7 py-5 border-b border-slate-100 shrink-0">
-          <h3 className="text-base font-bold text-slate-800">
+          <h3 className="text-base font-bold text-slate-900">
             {modifica ? 'Modifica modello email' : 'Nuovo modello email'}
           </h3>
-          <button onClick={onChiudi} className="text-slate-400 hover:text-slate-600 transition">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+          <button onClick={onChiudi} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>
@@ -75,7 +84,7 @@ function ModaleForm({ modello, onSalva, onChiudi, conteggioPerFase }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Fase *</label>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Fase *</label>
               <select value={form.fase} onChange={e => set('fase', e.target.value)} className={cls}>
                 {FASI.map(f => (
                   <option key={f} value={f} disabled={!modifica && (conteggioPerFase[f] ?? 0) >= MAX_PER_FASE}>
@@ -85,25 +94,25 @@ function ModaleForm({ modello, onSalva, onChiudi, conteggioPerFase }) {
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Nome modello *</label>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Nome modello *</label>
               <input type="text" value={form.nome} onChange={e => set('nome', e.target.value)}
                 placeholder="es. Invito colloquio" className={cls} autoFocus />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Oggetto email</label>
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Oggetto email</label>
             <input type="text" value={form.oggetto} onChange={e => set('oggetto', e.target.value)}
               placeholder="es. Candidatura {{cognome}} — {{posizione}}" className={cls} />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Corpo messaggio *</label>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Corpo messaggio *</label>
               <div className="flex flex-wrap gap-1.5">
                 {SEGNAPOSTO.map(tag => (
                   <button key={tag} type="button" onClick={() => inserisciSegnaposto(tag)}
-                    className="text-xs font-mono bg-indigo-50 text-indigo-700 px-2 py-1 rounded hover:bg-indigo-100 transition">
+                    className="text-xs font-mono bg-violet-50 text-violet-700 px-2 py-1 rounded-lg hover:bg-violet-100 transition border border-violet-100">
                     {tag}
                   </button>
                 ))}
@@ -118,25 +127,26 @@ function ModaleForm({ modello, onSalva, onChiudi, conteggioPerFase }) {
               className={`${cls} resize-y font-mono text-sm leading-relaxed`}
             />
             <p className="text-xs text-slate-400 mt-2">
-              Clicca un segnaposto per inserirlo nel punto del cursore. I segnaposto vengono sostituiti automaticamente quando usi il modello.
+              Clicca un segnaposto per inserirlo nel punto del cursore. Vengono sostituiti automaticamente quando usi il modello.
             </p>
           </div>
 
           {limiteRaggiunto && (
             <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 px-4 py-3 rounded-xl">
-              Hai raggiunto il limite di {MAX_PER_FASE} modelli per la fase "{form.fase}". Seleziona un'altra fase o elimina un modello esistente.
+              Hai raggiunto il limite di {MAX_PER_FASE} modelli per la fase "{form.fase}".
             </p>
           )}
 
           {errore && <p className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl border border-red-200">{errore}</p>}
 
           <div className="flex gap-3 justify-end pt-1 pb-1">
-            <button type="button" onClick={onChiudi} className="text-sm font-medium text-slate-600 px-5 py-2.5 rounded-xl hover:bg-slate-100 transition">
+            <button type="button" onClick={onChiudi}
+              className="text-sm font-medium text-slate-600 px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition">
               Annulla
             </button>
             <button type="submit" disabled={invio || limiteRaggiunto}
-              className="text-sm font-semibold text-white px-6 py-2.5 rounded-xl transition disabled:opacity-60 shadow-sm"
-              style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}>
+              className="text-sm font-semibold text-white px-6 py-2.5 rounded-xl transition disabled:opacity-60 shadow-sm hover:shadow-md"
+              style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)' }}>
               {invio ? 'Salvataggio…' : modifica ? 'Salva modifiche' : 'Crea modello'}
             </button>
           </div>
@@ -204,30 +214,34 @@ export default function PaginaEmail() {
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
 
-      {/* Tab fasi */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {FASI.map(f => {
-          const n = conteggioPerFase[f] ?? 0;
-          const attiva = faseAttiva === f;
-          return (
-            <button key={f} onClick={() => setFaseAttiva(f)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
-                attiva
-                  ? 'text-white shadow-sm'
-                  : 'text-slate-600 bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-700'
-              }`}
-              style={attiva ? { background: 'linear-gradient(135deg,#6366f1,#4f46e5)' } : {}}>
-              {f}
-              <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${attiva ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                {n}/{MAX_PER_FASE}
-              </span>
-            </button>
-          );
-        })}
+      {/* Tab fasi + bottone */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto pb-0">
+          {FASI.map(f => {
+            const n = conteggioPerFase[f] ?? 0;
+            const attiva = faseAttiva === f;
+            return (
+              <button key={f} onClick={() => setFaseAttiva(f)}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-all duration-200 -mb-px ${
+                  attiva
+                    ? 'border-violet-500 text-violet-700'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                }`}>
+                <span className={`inline-flex items-center gap-1.5 ${attiva ? '' : ''}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${DOT_FASE[f]}`} />
+                  {f}
+                </span>
+                <span className={`text-xs font-bold px-1.5 py-0.5 rounded-md ${attiva ? 'bg-violet-100 text-violet-600' : 'bg-slate-100 text-slate-400'}`}>
+                  {n}
+                </span>
+              </button>
+            );
+          })}
+        </div>
         <button
           onClick={() => { setInModifica(null); setMostraForm(true); }}
-          className="ml-auto flex items-center gap-1.5 text-sm font-semibold text-white px-5 py-2.5 rounded-xl shadow-sm transition"
-          style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}>
+          className="flex items-center gap-1.5 text-sm font-semibold text-white px-5 py-2.5 rounded-xl shadow-sm hover:shadow-md transition shrink-0"
+          style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)' }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
           </svg>
@@ -235,36 +249,28 @@ export default function PaginaEmail() {
         </button>
       </div>
 
-      {/* Intestazione fase corrente */}
-      <div className="flex items-center gap-3">
-        <span className={`text-xs font-bold px-3 py-1.5 rounded ${BADGE_FASE[faseAttiva]}`}>{faseAttiva}</span>
-        <p className="text-sm text-slate-500">
-          {modelliVista.length === 0
-            ? 'Nessun modello per questa fase'
-            : `${modelliVista.length} modell${modelliVista.length === 1 ? 'o' : 'i'}`}
-        </p>
-      </div>
-
       {/* Lista modelli */}
       {modelliVista.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-          <svg className="w-10 h-10 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-          </svg>
+        <div className="bg-white border border-slate-100 rounded-2xl p-14 text-center shadow-sm">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-slate-50 flex items-center justify-center">
+            <svg className="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </div>
           <p className="text-slate-400 text-sm mb-4">Nessun modello per la fase <strong>{faseAttiva}</strong></p>
           <button
             onClick={() => { setInModifica(null); setMostraForm(true); }}
-            className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition">
+            className="text-sm font-semibold text-violet-600 hover:text-violet-800 transition">
             + Crea il primo modello
           </button>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
           {modelliVista.map(m => (
-            <div key={m.id} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-              <div className="flex items-start justify-between gap-4 px-7 py-5 border-b border-slate-100">
+            <div key={m.id} className={`bg-white border border-slate-100 border-l-4 ${ACCENT_FASE[m.fase]} rounded-2xl shadow-sm overflow-hidden`}>
+              <div className="flex items-start justify-between gap-4 px-7 py-5 border-b border-slate-50">
                 <div className="min-w-0">
-                  <p className="text-base font-bold text-slate-800">{m.nome}</p>
+                  <p className="text-base font-bold text-slate-900">{m.nome}</p>
                   {m.oggetto && (
                     <p className="text-sm text-slate-500 mt-1 truncate">
                       <span className="font-medium text-slate-400 mr-1">Oggetto:</span>{m.oggetto}
@@ -273,11 +279,11 @@ export default function PaginaEmail() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button onClick={() => { setInModifica(m); setMostraForm(true); }}
-                    className="text-sm font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-xl hover:bg-indigo-100 transition">
+                    className="text-sm font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-xl hover:bg-indigo-100 transition">
                     Modifica
                   </button>
                   <button onClick={() => setDaEliminare(m)}
-                    className="text-sm font-semibold text-red-500 bg-red-50 border border-red-200 px-4 py-2 rounded-xl hover:bg-red-100 transition">
+                    className="text-sm font-semibold text-red-500 bg-red-50 border border-red-100 px-4 py-2 rounded-xl hover:bg-red-100 transition">
                     Elimina
                   </button>
                 </div>
@@ -288,7 +294,7 @@ export default function PaginaEmail() {
                 </pre>
                 <div className="flex flex-wrap gap-1.5 mt-4">
                   {SEGNAPOSTO.filter(t => m.corpo.includes(t) || m.oggetto?.includes(t)).map(t => (
-                    <span key={t} className="text-xs font-mono bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded">{t}</span>
+                    <span key={t} className="text-xs font-mono bg-violet-50 text-violet-600 px-2 py-0.5 rounded-lg border border-violet-100">{t}</span>
                   ))}
                 </div>
               </div>
@@ -309,14 +315,15 @@ export default function PaginaEmail() {
 
       {/* Modale conferma elimina */}
       {daEliminare && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl p-7 w-full max-w-sm mx-4">
-            <h3 className="text-base font-bold text-slate-800 mb-2">Elimina modello</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-7 w-full max-w-sm mx-4">
+            <h3 className="text-base font-bold text-slate-900 mb-2">Elimina modello</h3>
             <p className="text-sm text-slate-600 mb-6">
               Vuoi eliminare il modello <span className="font-semibold">"{daEliminare.nome}"</span>? L'operazione è irreversibile.
             </p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setDaEliminare(null)} className="text-sm font-medium text-slate-600 px-4 py-2.5 rounded-xl hover:bg-slate-100 transition">Annulla</button>
+              <button onClick={() => setDaEliminare(null)}
+                className="text-sm font-medium text-slate-600 px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition">Annulla</button>
               <button onClick={confermaElimina} disabled={eliminando}
                 className="text-sm font-semibold bg-red-600 text-white px-4 py-2.5 rounded-xl hover:bg-red-700 transition disabled:opacity-60">
                 {eliminando ? 'Eliminazione…' : 'Elimina'}

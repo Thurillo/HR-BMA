@@ -19,14 +19,14 @@ export default function StatoDB() {
   }, []);
 
   const cfg = {
-    verifica: { dot: 'bg-slate-400 animate-pulse', text: 'text-slate-500', label: 'Connessione…' },
-    connesso: { dot: 'bg-emerald-400',             text: 'text-emerald-600', label: 'Database connesso' },
-    errore:   { dot: 'bg-red-400 animate-pulse',   text: 'text-red-500',    label: 'DB non raggiungibile' },
+    verifica: { dot: 'bg-slate-400 animate-pulse', pill: 'bg-slate-50 border-slate-200 text-slate-500', label: 'Connessione…' },
+    connesso: { dot: 'bg-emerald-400',             pill: 'bg-emerald-50 border-emerald-200 text-emerald-700', label: 'Database connesso' },
+    errore:   { dot: 'bg-red-400 animate-pulse',   pill: 'bg-red-50 border-red-200 text-red-600', label: 'DB non raggiungibile' },
   }[stato];
 
   return (
-    <div className={`flex items-center gap-2 text-sm font-medium ${cfg.text}`}>
-      <span className={`w-2 h-2 rounded-full shrink-0 ${cfg.dot}`} />
+    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium ${cfg.pill}`}>
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
       {cfg.label}
     </div>
   );

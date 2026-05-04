@@ -11,10 +11,17 @@ import DettagliModale from './DettagliModale';
 import ModaleEmailTemplate from './ModaleEmailTemplate';
 
 const BADGE_STATO = {
-  'Aperta':   'bg-green-100 text-green-700',
+  'Aperta':   'bg-emerald-100 text-emerald-700',
   'In pausa': 'bg-amber-100 text-amber-700',
   'Chiusa':   'bg-slate-100 text-slate-500',
 };
+
+const ACCENT_STATO = {
+  'Aperta':   'bg-emerald-400',
+  'In pausa': 'bg-amber-400',
+  'Chiusa':   'bg-slate-300',
+};
+
 const STATI_POSIZIONE = ['Aperta', 'In pausa', 'Chiusa'];
 
 const COLONNE_KANBAN = ['Nuovo', '1° Colloquio', '2° Colloquio', 'Offerta', 'Assunto', 'Scartato'];
@@ -36,6 +43,20 @@ const COL_HEADER = {
   'Assunto':        'bg-green-50 border-green-200 text-green-700',
   'Scartato':       'bg-red-50 border-red-200 text-red-600',
 };
+
+const AVATAR_COLORS = [
+  'bg-indigo-100 text-indigo-700',
+  'bg-violet-100 text-violet-700',
+  'bg-blue-100 text-blue-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-amber-100 text-amber-700',
+  'bg-rose-100 text-rose-700',
+];
+
+function avatarColor(id) { return AVATAR_COLORS[id % AVATAR_COLORS.length]; }
+function initials(first, last) {
+  return `${(first?.[0] ?? '').toUpperCase()}${(last?.[0] ?? '').toUpperCase()}`;
+}
 
 // ── Utility ──────────────────────────────────────────────────────────────────
 function raggruppaPerStatus(candidati) {
@@ -219,8 +240,8 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
         </select>
         <button
           onClick={apriAggiungi}
-          className="flex items-center gap-1.5 text-sm font-semibold text-white px-3.5 py-2 rounded-xl transition shadow-sm"
-          style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}
+          className="flex items-center gap-1.5 text-sm font-semibold text-white px-3.5 py-2 rounded-xl transition shadow-sm hover:shadow-md"
+          style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)' }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
@@ -321,7 +342,7 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
                               ref={prov.innerRef}
                               {...prov.draggableProps}
                               {...prov.dragHandleProps}
-                              className={`bg-white border rounded-xl p-2.5 shadow-sm text-xs cursor-grab active:cursor-grabbing select-none ${snap.isDragging ? 'shadow-md rotate-1' : ''} ${BADGE_KANBAN[col]}`}
+                              className={`bg-white border border-slate-100 rounded-xl p-2.5 shadow-sm text-xs cursor-grab active:cursor-grabbing select-none ${snap.isDragging ? 'shadow-lg rotate-1' : 'hover:shadow-md'} transition-shadow`}
                             >
                               <button
                                 onMouseDown={e => e.stopPropagation()}
@@ -329,10 +350,15 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
                                 disabled={caricandoDettaglio === c.id}
                                 className="w-full text-left disabled:opacity-60"
                               >
-                                <p className="font-semibold text-slate-800 leading-tight hover:text-blue-700 transition-colors">
-                                  {caricandoDettaglio === c.id ? '…' : `${c.first_name} ${c.last_name}`}
-                                </p>
-                                {c.current_role && <p className="text-slate-500 mt-0.5 truncate">{c.current_role}</p>}
+                                <div className="flex items-center gap-2 mb-1">
+                                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${avatarColor(c.id)}`}>
+                                    {caricandoDettaglio === c.id ? '…' : initials(c.first_name, c.last_name)}
+                                  </div>
+                                  <p className="font-semibold text-slate-800 leading-tight hover:text-indigo-700 transition-colors truncate">
+                                    {caricandoDettaglio === c.id ? 'Caricamento…' : `${c.first_name} ${c.last_name}`}
+                                  </p>
+                                </div>
+                                {c.current_role && <p className="text-slate-400 truncate pl-8">{c.current_role}</p>}
                               </button>
                               <div className="mt-2 flex items-center gap-2">
                                 <button
@@ -401,9 +427,9 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
 
       {/* Conferma eliminazione posizione */}
       {confermaElimina && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
-            <h3 className="text-base font-bold text-slate-800 mb-2">Elimina posizione</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-7 w-full max-w-sm mx-4">
+            <h3 className="text-base font-bold text-slate-900 mb-2">Elimina posizione</h3>
             <p className="text-sm text-slate-600 mb-5">
               Vuoi eliminare la posizione <span className="font-semibold">{posizione.titolo}</span>?
               Tutti i candidati associati verranno scollegati.
@@ -498,8 +524,8 @@ export default function PaginaPosizioni() {
         <p className="text-sm text-slate-400">{posizioni.length} posizion{posizioni.length !== 1 ? 'i' : 'e'}</p>
         <button
           onClick={() => { setMostraForm(true); setErroreForm(null); }}
-          className="flex items-center gap-2 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-sm"
-          style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}
+          className="flex items-center gap-2 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition shadow-sm hover:shadow-md"
+          style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)' }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
@@ -510,7 +536,7 @@ export default function PaginaPosizioni() {
 
       {/* Form nuova posizione */}
       {mostraForm && (
-        <form onSubmit={crea} className="bg-white border border-slate-200 rounded-2xl p-5 mb-6 shadow-sm">
+        <form onSubmit={crea} className="bg-white border border-slate-100 rounded-2xl p-5 mb-6 shadow-sm">
           <h3 className="text-sm font-bold text-slate-700 mb-4">Nuova posizione lavorativa</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
@@ -566,30 +592,33 @@ export default function PaginaPosizioni() {
           <p className="text-sm">Nessuna posizione ancora creata.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {posizioni.map(pos => (
             <button
               key={pos.id}
               onClick={() => setPosizioneAperta(pos)}
-              className="bg-white border border-slate-200 rounded-2xl p-5 text-left hover:shadow-md hover:border-indigo-300 transition-all"
+              className="relative bg-white border border-slate-100 rounded-2xl p-5 text-left hover:shadow-md hover:border-slate-200 transition-all overflow-hidden group"
             >
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="text-sm font-bold text-slate-800 leading-snug">{pos.titolo}</h3>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${BADGE_STATO[pos.stato]}`}>
-                  {pos.stato}
-                </span>
-              </div>
-              {pos.descrizione && (
-                <p className="text-xs text-slate-500 mt-1.5 line-clamp-2">{pos.descrizione}</p>
-              )}
-              <div className="flex items-center gap-3 mt-3 text-xs text-slate-400">
-                <span className="flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-5a4 4 0 11-8 0 4 4 0 018 0z"/>
-                  </svg>
-                  {pos.num_candidati} candidat{pos.num_candidati === 1 ? 'o' : 'i'}
-                </span>
-                <span>{new Date(pos.created_at).toLocaleDateString('it-IT')}</span>
+              <div className={`absolute left-0 top-0 bottom-0 w-1 ${ACCENT_STATO[pos.stato] ?? 'bg-slate-300'}`} />
+              <div className="pl-3">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <h3 className="text-sm font-bold text-slate-900 leading-snug group-hover:text-indigo-700 transition-colors">{pos.titolo}</h3>
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${BADGE_STATO[pos.stato]}`}>
+                    {pos.stato}
+                  </span>
+                </div>
+                {pos.descrizione && (
+                  <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">{pos.descrizione}</p>
+                )}
+                <div className="flex items-center gap-3 mt-3 text-xs text-slate-400">
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-5a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    {pos.num_candidati} candidat{pos.num_candidati === 1 ? 'o' : 'i'}
+                  </span>
+                  <span>{new Date(pos.created_at).toLocaleDateString('it-IT')}</span>
+                </div>
               </div>
             </button>
           ))}

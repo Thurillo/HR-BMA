@@ -17,13 +17,13 @@ export default function App() {
   const [paginaAttiva, setPaginaAttiva] = useState('candidati');
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#f1f5f9' }}>
+    <div className="min-h-screen flex" style={{ background: '#f8fafc' }}>
       <Sidebar paginaAttiva={paginaAttiva} onChange={setPaginaAttiva} />
 
       <div className="flex-1 flex flex-col min-h-0 min-w-0">
         {/* Topbar */}
-        <header className="bg-white border-b border-slate-200 px-12 h-[72px] flex items-center justify-between shrink-0">
-          <h1 className="text-lg font-bold text-slate-800">{TITOLI[paginaAttiva]}</h1>
+        <header className="bg-white border-b border-slate-100 shadow-sm px-12 h-[72px] flex items-center justify-between shrink-0">
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">{TITOLI[paginaAttiva]}</h1>
           <StatoDB />
         </header>
 
