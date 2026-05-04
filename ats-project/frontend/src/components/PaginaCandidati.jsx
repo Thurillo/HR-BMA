@@ -13,6 +13,24 @@ const FORM_VUOTO = {
   linkedin_url: '', executive_summary: '', status: 'Nuovo',
 };
 
+const DOT_STATUS = {
+  'Nuovo':          'bg-slate-400',
+  '1° Colloquio':   'bg-blue-500',
+  '2° Colloquio':   'bg-indigo-500',
+  'Offerta':        'bg-amber-500',
+  'Assunto':        'bg-emerald-500',
+  'Scartato':       'bg-red-500',
+};
+
+const LABEL_STATUS = {
+  'Nuovo':          'text-slate-600',
+  '1° Colloquio':   'text-blue-700',
+  '2° Colloquio':   'text-indigo-700',
+  'Offerta':        'text-amber-700',
+  'Assunto':        'text-emerald-700',
+  'Scartato':       'text-red-600',
+};
+
 function ModaleNuovoCandidato({ onChiudi, onCreato }) {
   const [form, setForm]     = useState(FORM_VUOTO);
   const [errore, setErrore] = useState(null);
@@ -31,7 +49,6 @@ function ModaleNuovoCandidato({ onChiudi, onCreato }) {
     setErrore(null);
     try {
       const { id } = await creaCandidato(form);
-      // ricarica il candidato appena creato tramite GET
       const lista = await (await fetch(`${(import.meta.env.VITE_API_URL ?? '')}/api/candidates`)).json();
       const nuovo = lista.find(c => c.id === id) ?? { ...form, id };
       onCreato(nuovo);
@@ -46,12 +63,12 @@ function ModaleNuovoCandidato({ onChiudi, onCreato }) {
   function campo(label, key, tipo = 'text', props = {}) {
     return (
       <div>
-        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{label}</label>
+        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">{label}</label>
         <input
           type={tipo}
           value={form[key]}
           onChange={e => set(key, e.target.value)}
-          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition bg-white"
           {...props}
         />
       </div>
@@ -59,20 +76,18 @@ function ModaleNuovoCandidato({ onChiudi, onCreato }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
 
-        {/* Intestazione */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
-          <h3 className="text-base font-bold text-slate-800">Nuovo candidato</h3>
-          <button onClick={onChiudi} className="text-slate-400 hover:text-slate-600 transition">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 shrink-0">
+          <h3 className="text-base font-bold text-slate-900">Nuovo candidato</h3>
+          <button onClick={onChiudi} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>
         </div>
 
-        {/* Form scrollabile */}
         <form onSubmit={invia} className="overflow-y-auto px-6 py-5 flex flex-col gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {campo('Nome *', 'first_name', 'text', { autoFocus: true })}
@@ -90,33 +105,36 @@ function ModaleNuovoCandidato({ onChiudi, onCreato }) {
             {campo('Località', 'location')}
             {campo('LinkedIn', 'linkedin_url', 'url')}
             <div>
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Stato</label>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Stato</label>
               <select
                 value={form.status}
                 onChange={e => set('status', e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition bg-white"
               >
                 {STATI_VALIDI.map(s => <option key={s}>{s}</option>)}
               </select>
             </div>
           </div>
           <div>
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Sintesi professionale</label>
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Sintesi professionale</label>
             <textarea
               rows={3}
               value={form.executive_summary}
               onChange={e => set('executive_summary', e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition bg-white"
             />
           </div>
 
-          {errore && <p className="text-sm text-red-600">{errore}</p>}
+          {errore && <p className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl border border-red-200">{errore}</p>}
 
           <div className="flex gap-2 justify-end pt-1 pb-1">
-            <button type="button" onClick={onChiudi} className="text-sm font-medium text-slate-600 px-4 py-2.5 rounded-xl hover:bg-slate-100 transition">
+            <button type="button" onClick={onChiudi}
+              className="text-sm font-medium text-slate-600 px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition">
               Annulla
             </button>
-            <button type="submit" disabled={invio} className="text-sm font-semibold bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition disabled:opacity-60">
+            <button type="submit" disabled={invio}
+              className="text-sm font-semibold text-white px-5 py-2.5 rounded-xl transition disabled:opacity-60 shadow-sm hover:shadow-md"
+              style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)' }}>
               {invio ? 'Salvataggio…' : 'Crea candidato'}
             </button>
           </div>
@@ -140,22 +158,27 @@ const COLONNE = [
   { key: 'location',          label: 'Sede' },
 ];
 
-const BADGE_STATUS = {
-  'Nuovo':          'bg-slate-100 text-slate-700',
-  '1° Colloquio':   'bg-blue-100 text-blue-800',
-  '2° Colloquio':   'bg-indigo-100 text-indigo-800',
-  'Offerta':        'bg-amber-100 text-amber-800',
-  'Assunto':        'bg-emerald-100 text-emerald-800',
-  'Scartato':       'bg-red-100 text-red-700',
-};
-
 function IconSort({ attiva, dir }) {
   return (
-    <svg className={`w-3 h-3 inline ml-1 ${attiva ? 'text-indigo-600' : 'text-slate-300'}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+    <svg className={`w-3 h-3 inline ml-1 ${attiva ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
       {dir === 'asc'
         ? <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7"/>
         : <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>}
     </svg>
+  );
+}
+
+function KpiCard({ icona, valore, etichetta, colore }) {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 p-5 flex items-center gap-4 shadow-sm">
+      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${colore}`}>
+        {icona}
+      </div>
+      <div>
+        <p className="text-2xl font-bold text-slate-900 leading-none">{valore}</p>
+        <p className="text-xs text-slate-500 mt-1">{etichetta}</p>
+      </div>
+    </div>
   );
 }
 
@@ -258,6 +281,9 @@ export default function PaginaCandidati() {
     }
   }
 
+  const inColloquio = candidati.filter(c => c.status === '1° Colloquio' || c.status === '2° Colloquio').length;
+  const assunti = candidati.filter(c => c.status === 'Assunto').length;
+
   if (caricamento) return (
     <div className="flex items-center justify-center h-64 text-slate-500">Caricamento candidati…</div>
   );
@@ -272,8 +298,42 @@ export default function PaginaCandidati() {
   return (
     <div className="flex flex-col gap-6">
 
+      {/* KPI cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <KpiCard
+          valore={candidati.length}
+          etichetta="Totale candidati"
+          colore="bg-gradient-to-br from-indigo-500 to-violet-600"
+          icona={
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-5a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          }
+        />
+        <KpiCard
+          valore={inColloquio}
+          etichetta="In colloquio"
+          colore="bg-gradient-to-br from-blue-500 to-indigo-500"
+          icona={
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+          }
+        />
+        <KpiCard
+          valore={assunti}
+          etichetta="Assunti"
+          colore="bg-gradient-to-br from-emerald-500 to-teal-600"
+          icona={
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          }
+        />
+      </div>
+
       {/* Toolbar */}
-      <div className="flex items-center gap-4 flex-wrap">
+      <div className="flex items-center gap-3 flex-wrap">
         <p className="text-sm text-slate-400 mr-auto">
           {filtrati.length === candidati.length
             ? `${candidati.length} candidati`
@@ -288,18 +348,18 @@ export default function PaginaCandidati() {
             value={filtro}
             onChange={e => setFiltro(e.target.value)}
             placeholder="Cerca candidati…"
-            className="pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 w-56 shadow-sm transition"
+            className="pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 w-56 shadow-sm transition"
           />
         </div>
         <button onClick={esporta} title="Esporta tutti i candidati in JSON"
-          className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition shadow-sm shrink-0">
+          className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition shadow-sm shrink-0">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 8l-3-3m3 3l3-3"/>
           </svg>
           Esporta
         </button>
         <button onClick={() => inputFileRef.current?.click()} disabled={importando} title="Importa candidati da file JSON"
-          className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-50 transition shadow-sm shrink-0 disabled:opacity-60">
+          className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition shadow-sm shrink-0 disabled:opacity-60">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12l-3 3m3-3l3 3"/>
           </svg>
@@ -307,8 +367,8 @@ export default function PaginaCandidati() {
         </button>
         <input ref={inputFileRef} type="file" accept=".json" className="hidden" onChange={onFileImport} />
         <button onClick={() => setMostraNuovo(true)}
-          className="flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-xl text-white transition shadow-sm shrink-0"
-          style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}>
+          className="flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-xl text-white transition shadow-sm hover:shadow-md shrink-0"
+          style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)' }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
           </svg>
@@ -322,48 +382,49 @@ export default function PaginaCandidati() {
       </div>
 
       {/* Tabella */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/80">
+              <tr className="border-b border-slate-100 bg-slate-50/60">
                 {COLONNE.map(col => (
                   <th key={col.key} onClick={() => toggleSort(col.key)}
-                    className="px-7 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-widest cursor-pointer select-none hover:text-indigo-600 hover:bg-indigo-50/50 transition whitespace-nowrap">
-                    <span className="flex items-center gap-1.5">
+                    className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer select-none hover:text-violet-600 transition whitespace-nowrap">
+                    <span className="flex items-center gap-1">
                       {col.label}
                       <IconSort attiva={sortKey === col.key} dir={sortKey === col.key ? sortDir : 'asc'} />
                     </span>
                   </th>
                 ))}
-                <th className="px-7 py-4 text-xs font-black text-slate-500 uppercase tracking-widest text-right">Azioni</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Azioni</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-50">
               {ordinati.length === 0 ? (
                 <tr>
-                  <td colSpan={COLONNE.length + 1} className="text-center py-20 text-slate-400 text-base">
+                  <td colSpan={COLONNE.length + 1} className="text-center py-20 text-slate-400 text-sm">
                     Nessun candidato trovato
                   </td>
                 </tr>
               ) : ordinati.map(c => (
-                <tr key={c.id} className="hover:bg-indigo-50/30 transition-colors">
+                <tr key={c.id} className="hover:bg-violet-50/20 transition-colors">
                   {COLONNE.map(col => (
-                    <td key={col.key} className="px-7 py-5 max-w-[200px]">
+                    <td key={col.key} className="px-6 py-4 max-w-[200px]">
                       {col.key === 'status' ? (
-                        <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded whitespace-nowrap ${BADGE_STATUS[c.status] ?? 'bg-slate-100 text-slate-700'}`}>
-                          {c.status ?? '—'}
+                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${DOT_STATUS[c.status] ?? 'bg-slate-400'}`} />
+                          <span className={`text-xs font-medium ${LABEL_STATUS[c.status] ?? 'text-slate-600'}`}>{c.status ?? '—'}</span>
                         </span>
                       ) : col.key === 'last_name' || col.key === 'first_name' ? (
-                        <span className="text-sm font-bold text-slate-800 truncate block" title={c[col.key] ?? ''}>
+                        <span className="text-sm font-semibold text-slate-800 truncate block" title={c[col.key] ?? ''}>
                           {c[col.key] ?? <span className="text-slate-300 font-normal">—</span>}
                         </span>
                       ) : col.key === 'email' ? (
-                        <span className="text-sm text-slate-600 truncate block" title={c.email ?? ''}>
+                        <span className="text-sm text-slate-500 truncate block" title={c.email ?? ''}>
                           {c.email ?? <span className="text-slate-300">—</span>}
                         </span>
                       ) : col.key === 'phone' ? (
-                        <span className="text-sm text-slate-600 whitespace-nowrap block">
+                        <span className="text-sm text-slate-500 whitespace-nowrap block">
                           {c.phone ?? <span className="text-slate-300">—</span>}
                         </span>
                       ) : (
@@ -373,14 +434,14 @@ export default function PaginaCandidati() {
                       )}
                     </td>
                   ))}
-                  <td className="px-7 py-5 text-right">
+                  <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => setSelezionato(c)}
-                        className="text-sm font-bold text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 border border-indigo-200 hover:border-indigo-600 px-4 py-2 rounded-xl transition whitespace-nowrap">
+                      <button onClick={() => setSelezionato(c)} title="Apri scheda candidato"
+                        className="text-sm font-semibold text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 border border-indigo-200 hover:border-indigo-600 px-3.5 py-1.5 rounded-lg transition whitespace-nowrap">
                         Apri scheda
                       </button>
-                      <button onClick={() => setDaEliminare(c)}
-                        className="text-sm font-bold text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border-2 border-red-200 hover:border-red-500 px-4 py-2 rounded-xl transition whitespace-nowrap">
+                      <button onClick={() => setDaEliminare(c)} title="Elimina candidato"
+                        className="text-sm font-semibold text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-200 hover:border-red-500 px-3.5 py-1.5 rounded-lg transition whitespace-nowrap">
                         Elimina
                       </button>
                     </div>
@@ -414,25 +475,20 @@ export default function PaginaCandidati() {
 
       {/* Modale conferma eliminazione */}
       {daEliminare && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
-            <h3 className="text-base font-bold text-slate-800 mb-2">Elimina candidato</h3>
-            <p className="text-sm text-slate-600 mb-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-7 w-full max-w-sm mx-4">
+            <h3 className="text-base font-bold text-slate-900 mb-2">Elimina candidato</h3>
+            <p className="text-sm text-slate-600 mb-6">
               Vuoi eliminare <span className="font-semibold">{daEliminare.first_name} {daEliminare.last_name}</span>?
               L'operazione è irreversibile.
             </p>
             <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => setDaEliminare(null)}
-                className="text-sm px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition"
-              >
+              <button onClick={() => setDaEliminare(null)}
+                className="text-sm px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
                 Annulla
               </button>
-              <button
-                onClick={confermaElimina}
-                disabled={eliminando}
-                className="text-sm px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-60"
-              >
+              <button onClick={confermaElimina} disabled={eliminando}
+                className="text-sm px-4 py-2.5 rounded-xl bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-60 font-semibold">
                 {eliminando ? 'Eliminazione…' : 'Elimina'}
               </button>
             </div>

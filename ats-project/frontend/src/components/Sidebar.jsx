@@ -7,7 +7,7 @@ const VOCI = [
     id: 'candidati',
     etichetta: 'Candidati',
     icona: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+      <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-5a4 4 0 11-8 0 4 4 0 018 0z"/>
       </svg>
     ),
@@ -16,7 +16,7 @@ const VOCI = [
     id: 'posizioni',
     etichetta: 'Posizioni aperte',
     icona: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+      <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zm-9-4h2a2 2 0 012 2v2H9V5a2 2 0 012-2z"/>
       </svg>
     ),
@@ -25,7 +25,7 @@ const VOCI = [
     id: 'email',
     etichetta: 'Email',
     icona: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+      <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
       </svg>
     ),
@@ -34,7 +34,7 @@ const VOCI = [
     id: 'aggiornamenti',
     etichetta: 'Aggiornamenti',
     icona: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+      <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 104.583 9.065"/>
       </svg>
     ),
@@ -55,10 +55,10 @@ export default function Sidebar({ paginaAttiva, onChange }) {
     <aside className="w-72 shrink-0 flex flex-col" style={{ background: '#0f172a' }}>
 
       {/* Brand */}
-      <div className="px-7 py-8 border-b border-white/8">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}>
+      <div className="px-6 py-7 border-b border-white/8">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg"
+            style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)' }}>
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-5a4 4 0 11-8 0 4 4 0 018 0z"/>
             </svg>
@@ -71,23 +71,25 @@ export default function Sidebar({ paginaAttiva, onChange }) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-5 py-7 flex flex-col gap-2">
-        <p className="px-3 pb-4 text-xs font-bold text-slate-600 uppercase tracking-widest">Menu</p>
+      <nav className="flex-1 px-4 py-6 flex flex-col gap-1">
+        <p className="px-3 pb-3 text-xs font-bold text-slate-600 uppercase tracking-widest">Menu</p>
         {VOCI.map(voce => {
           const attiva = paginaAttiva === voce.id;
           return (
             <button key={voce.id} onClick={() => onChange(voce.id)}
-              className={`w-full flex items-center gap-3 px-5 py-4 rounded-2xl text-sm font-semibold transition-all text-left
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-200 text-left
                 ${attiva
-                  ? 'text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-white/6'
+                  ? 'text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-white/8'
                 }`}
-              style={attiva ? { background: 'linear-gradient(135deg,#6366f1,#4f46e5)' } : {}}
+              style={attiva ? { background: 'linear-gradient(135deg,#6366f1,#7c3aed)' } : {}}
             >
-              <span className={attiva ? 'text-white' : 'text-slate-500'}>{voce.icona}</span>
+              <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200 ${attiva ? 'bg-white/20 text-white' : 'bg-white/5 text-slate-500'}`}>
+                {voce.icona}
+              </span>
               <span className="flex-1">{voce.etichetta}</span>
               {voce.id === 'aggiornamenti' && aggiornamentoDisponibile && (
-                <span className={`w-2 h-2 rounded-full ${attiva ? 'bg-white' : 'bg-indigo-400'}`} />
+                <span className={`w-2 h-2 rounded-full ${attiva ? 'bg-white' : 'bg-violet-400'}`} />
               )}
             </button>
           );
@@ -95,7 +97,7 @@ export default function Sidebar({ paginaAttiva, onChange }) {
       </nav>
 
       {/* Footer */}
-      <div className="px-7 py-6 border-t border-white/8">
+      <div className="px-6 py-5 border-t border-white/8">
         <p className="text-xs text-slate-600">© 2026 HR-BMA</p>
       </div>
     </aside>
