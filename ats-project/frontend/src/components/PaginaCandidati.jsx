@@ -170,13 +170,13 @@ function IconSort({ attiva, dir }) {
 
 function KpiCard({ icona, valore, etichetta, colore }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 p-5 flex items-center gap-4 shadow-sm">
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${colore}`}>
+    <div className="bg-white rounded-2xl border border-slate-100 px-6 py-5 flex items-center gap-5 shadow-sm">
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${colore}`}>
         {icona}
       </div>
       <div>
         <p className="text-2xl font-bold text-slate-900 leading-none">{valore}</p>
-        <p className="text-xs text-slate-500 mt-1">{etichetta}</p>
+        <p className="text-xs text-slate-500 mt-1.5 leading-none">{etichetta}</p>
       </div>
     </div>
   );
@@ -296,10 +296,10 @@ export default function PaginaCandidati() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
 
       {/* KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <KpiCard
           valore={candidati.length}
           etichetta="Totale candidati"
@@ -389,14 +389,14 @@ export default function PaginaCandidati() {
               <tr className="border-b border-slate-100 bg-slate-50/60">
                 {COLONNE.map(col => (
                   <th key={col.key} onClick={() => toggleSort(col.key)}
-                    className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer select-none hover:text-violet-600 transition whitespace-nowrap">
+                    className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer select-none hover:text-violet-600 transition whitespace-nowrap first:pl-8">
                     <span className="flex items-center gap-1">
                       {col.label}
                       <IconSort attiva={sortKey === col.key} dir={sortKey === col.key ? sortDir : 'asc'} />
                     </span>
                   </th>
                 ))}
-                <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Azioni</th>
+                <th className="px-6 py-4 pr-8 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Azioni</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -408,8 +408,8 @@ export default function PaginaCandidati() {
                 </tr>
               ) : ordinati.map(c => (
                 <tr key={c.id} className="hover:bg-violet-50/20 transition-colors">
-                  {COLONNE.map(col => (
-                    <td key={col.key} className="px-6 py-4 max-w-[200px]">
+                  {COLONNE.map((col, ci) => (
+                    <td key={col.key} className={`px-6 py-4 max-w-[200px] ${ci === 0 ? 'pl-8' : ''}`}>
                       {col.key === 'status' ? (
                         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${DOT_STATUS[c.status] ?? 'bg-slate-400'}`} />
@@ -434,7 +434,7 @@ export default function PaginaCandidati() {
                       )}
                     </td>
                   ))}
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 pr-8 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button onClick={() => setSelezionato(c)} title="Apri scheda candidato"
                         className="text-sm font-semibold text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 border border-indigo-200 hover:border-indigo-600 px-3.5 py-1.5 rounded-lg transition whitespace-nowrap">
