@@ -4,6 +4,7 @@ import cors from 'cors';
 import pool from './db.js';
 import sistemaRouter from './routes/sistema.js';
 import posizioniRouter from './routes/posizioni.js';
+import emailTemplatesRouter from './routes/emailTemplates.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,6 +22,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/sistema', sistemaRouter);
 app.use('/api/posizioni', posizioniRouter);
+app.use('/api/email-templates', emailTemplatesRouter);
 
 // GET /api/candidates — recupera tutti i candidati
 app.get('/api/candidates', async (req, res) => {
