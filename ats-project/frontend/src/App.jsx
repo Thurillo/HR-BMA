@@ -2,12 +2,14 @@ import { useState } from 'react';
 import PaginaCandidati from './components/PaginaCandidati';
 import PaginaPosizioni from './components/PaginaPosizioni';
 import PaginaAggiornamenti from './components/PaginaAggiornamenti';
+import PaginaEmail from './components/PaginaEmail';
 import Sidebar from './components/Sidebar';
 import StatoDB from './components/StatoDB';
 
 const TITOLI = {
   candidati:     'Candidati',
   posizioni:     'Posizioni aperte',
+  email:         'Modelli Email',
   aggiornamenti: 'Aggiornamenti',
 };
 
@@ -29,6 +31,7 @@ export default function App() {
         <main className="flex-1 overflow-auto px-12 py-10">
           {paginaAttiva === 'candidati'     && <PaginaCandidati />}
           {paginaAttiva === 'posizioni'     && <PaginaPosizioni />}
+          {paginaAttiva === 'email'         && <PaginaEmail />}
           {paginaAttiva === 'aggiornamenti' && <PaginaAggiornamenti />}
         </main>
       </div>

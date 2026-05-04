@@ -6,7 +6,9 @@ import {
   aggiornStatusCandidatoPosizione,
 } from '../api/posizioni';
 import { getCandidati, getCandidato } from '../api/candidati';
+import { getEmailTemplates } from '../api/emailTemplates';
 import DettagliModale from './DettagliModale';
+import ModaleEmailTemplate from './ModaleEmailTemplate';
 
 const BADGE_STATO = {
   'Aperta':   'bg-green-100 text-green-700',
@@ -61,6 +63,8 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
   const [cambiandoStato, setCambiandoStato] = useState(false);
   const [candidatoDettaglio, setCandidatoDettaglio] = useState(null);
   const [caricandoDettaglio, setCaricandoDettaglio] = useState(null);
+  const [emailCtx, setEmailCtx]                     = useState(null); // { candidato, fase }
+  const [emailModelli, setEmailModelli]              = useState([]);
   const [nota, setNota]                 = useState(posizioneIniziale.note ?? '');
   const [salvandoNota, setSalvandoNota] = useState(false);
   const notaTimerRef                    = useRef(null);
@@ -111,6 +115,10 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
   }, [posizione.id]);
 
   useEffect(() => { caricaCandidati(); }, [caricaCandidati]);
+
+  useEffect(() => {
+    getEmailTemplates().then(setEmailModelli).catch(() => {});
+  }, []);
 
   async function apriAggiungi() {
     setMostraAggiungi(true);
@@ -326,13 +334,25 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
                                 </p>
                                 {c.current_role && <p className="text-slate-500 mt-0.5 truncate">{c.current_role}</p>}
                               </button>
-                              <button
-                                onMouseDown={e => e.stopPropagation()}
-                                onClick={() => rimuovi(c.id)}
-                                className="mt-1.5 text-red-400 hover:text-red-600 text-[10px] font-medium"
-                              >
-                                Rimuovi
-                              </button>
+                              <div className="mt-2 flex items-center gap-2">
+                                <button
+                                  onMouseDown={e => e.stopPropagation()}
+                                  onClick={() => setEmailCtx({ candidato: c, fase: col })}
+                                  title="Modelli email"
+                                  className="text-indigo-400 hover:text-indigo-600 transition"
+                                >
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                  </svg>
+                                </button>
+                                <button
+                                  onMouseDown={e => e.stopPropagation()}
+                                  onClick={() => rimuovi(c.id)}
+                                  className="text-red-400 hover:text-red-600 text-[10px] font-medium"
+                                >
+                                  Rimuovi
+                                </button>
+                              </div>
                             </div>
                           )}
                         </Draggable>
@@ -345,6 +365,17 @@ function DettaglioPosizione({ posizione: posizioneIniziale, onTorna, onEliminata
             ))}
           </div>
         </DragDropContext>
+      )}
+
+      {/* Modale email template */}
+      {emailCtx && (
+        <ModaleEmailTemplate
+          fase={emailCtx.fase}
+          candidato={emailCtx.candidato}
+          posizione={posizione}
+          modelli={emailModelli}
+          onChiudi={() => setEmailCtx(null)}
+        />
       )}
 
       {/* Dettaglio candidato */}
