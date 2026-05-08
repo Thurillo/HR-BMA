@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { BASE_URL } from '../api/client.js';
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? '';
+function parseEventData(raw) {
+  try { return JSON.parse(raw); } catch { return { messaggio: raw, ts: '' }; }
+}
 
 export default function PaginaAggiornamenti() {
   const [infoLocale, setInfoLocale] = useState(null);
@@ -63,12 +66,12 @@ export default function PaginaAggiornamenti() {
     sseRef.current = es;
 
     es.addEventListener('log', e => {
-      const d = JSON.parse(e.data);
+      const d = parseEventData(e.data);
       aggiungiLog(`[${d.ts}]  ${d.messaggio}`);
     });
 
     es.addEventListener('completato', e => {
-      const d = JSON.parse(e.data);
+      const d = parseEventData(e.data);
       aggiungiLog(`[${d.ts}]  ${d.messaggio}`, 'completato');
       es.close();
       setFase('completato');
@@ -86,7 +89,7 @@ export default function PaginaAggiornamenti() {
     });
 
     es.addEventListener('errore', e => {
-      const d = JSON.parse(e.data);
+      const d = parseEventData(e.data);
       aggiungiLog(`[${d.ts}]  ✗ ${d.messaggio}`, 'errore');
       es.close();
       setErrMsg('Aggiornamento interrotto — vedi il log per i dettagli.');

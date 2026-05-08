@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
 import { aggiornaAnagrafica } from '../api/candidati';
+import { STATI_CANDIDATO, BADGE_STATUS } from '../config/stati';
 
 const CAMPI_NASCOSTI = new Set(['id', 'created_at', 'updated_at', 'extra_data', 'note']);
 const CAMPI_JSON     = new Set(['hard_skills', 'soft_skills', 'certificazioni']);
-const STATI_VALIDI   = ['Nuovo', '1° Colloquio', '2° Colloquio', 'Offerta', 'Assunto', 'Scartato'];
 
 const ETICHETTE = {
   first_name: 'Nome', last_name: 'Cognome', email: 'Email', phone: 'Telefono',
@@ -15,15 +15,6 @@ const ETICHETTE = {
   universita: 'Università', certificazioni: 'Certificazioni', preavviso: 'Preavviso',
   ral_indicata: 'RAL indicata', modalita_lavoro: 'Modalità di lavoro',
   macro_sector: 'Macro settore', status: 'Stato',
-};
-
-const BADGE_STATUS = {
-  'Nuovo':        { bg: 'bg-slate-100',   text: 'text-slate-700',   dot: 'bg-slate-400'  },
-  '1° Colloquio': { bg: 'bg-blue-100',    text: 'text-blue-800',    dot: 'bg-blue-500'   },
-  '2° Colloquio': { bg: 'bg-indigo-100',  text: 'text-indigo-800',  dot: 'bg-indigo-500' },
-  'Offerta':      { bg: 'bg-amber-100',   text: 'text-amber-800',   dot: 'bg-amber-500'  },
-  'Assunto':      { bg: 'bg-green-100',   text: 'text-green-800',   dot: 'bg-green-500'  },
-  'Scartato':     { bg: 'bg-red-100',     text: 'text-red-700',     dot: 'bg-red-500'    },
 };
 
 const PILL_STYLE = {
@@ -116,7 +107,7 @@ function CampoModifica({ chiave, valore, onChange }) {
   if (chiave === 'status') {
     campo = (
       <select value={valore ?? ''} onChange={e => onChange(chiave, e.target.value)} className={cls}>
-        {STATI_VALIDI.map(s => <option key={s}>{s}</option>)}
+        {STATI_CANDIDATO.map(s => <option key={s}>{s}</option>)}
       </select>
     );
   } else if (chiave === 'executive_summary') {

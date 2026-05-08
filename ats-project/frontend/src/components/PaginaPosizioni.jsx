@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { STATI_CANDIDATO, COL_HEADER_KANBAN, BADGE_KANBAN } from '../config/stati';
 import {
   getPosizioni, creaPosizione, aggiornaPosizione, eliminaPosizione,
   getCandidatiPosizione, aggiungiCandidatoPosizione, rimuoviCandidatoPosizione,
@@ -24,25 +25,8 @@ const ACCENT_STATO = {
 
 const STATI_POSIZIONE = ['Aperta', 'In pausa', 'Chiusa'];
 
-const COLONNE_KANBAN = ['Nuovo', '1° Colloquio', '2° Colloquio', 'Offerta', 'Assunto', 'Scartato'];
-
-const BADGE_KANBAN = {
-  'Nuovo':          'bg-slate-100 text-slate-600 border-slate-200',
-  '1° Colloquio':   'bg-blue-50 text-blue-700 border-blue-200',
-  '2° Colloquio':   'bg-indigo-50 text-indigo-700 border-indigo-200',
-  'Offerta':        'bg-amber-50 text-amber-700 border-amber-200',
-  'Assunto':        'bg-green-50 text-green-700 border-green-200',
-  'Scartato':       'bg-red-50 text-red-600 border-red-200',
-};
-
-const COL_HEADER = {
-  'Nuovo':          'bg-slate-50 border-slate-200 text-slate-600',
-  '1° Colloquio':   'bg-blue-50 border-blue-200 text-blue-700',
-  '2° Colloquio':   'bg-indigo-50 border-indigo-200 text-indigo-700',
-  'Offerta':        'bg-amber-50 border-amber-200 text-amber-700',
-  'Assunto':        'bg-green-50 border-green-200 text-green-700',
-  'Scartato':       'bg-red-50 border-red-200 text-red-600',
-};
+const COLONNE_KANBAN = STATI_CANDIDATO;
+const COL_HEADER     = COL_HEADER_KANBAN;
 
 const AVATAR_COLORS = [
   'bg-indigo-100 text-indigo-700',

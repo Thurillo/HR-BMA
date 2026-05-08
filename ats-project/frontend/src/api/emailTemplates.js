@@ -1,39 +1,27 @@
-const BASE = (import.meta.env.VITE_API_URL ?? '') + '/api/email-templates';
+import { apiJson, apiFetch } from './client.js';
+
+const BASE = '/api/email-templates';
 
 export async function getEmailTemplates() {
-  const res = await fetch(BASE);
-  if (!res.ok) throw new Error('Errore caricamento modelli');
-  return res.json();
+  return apiJson(BASE);
 }
 
 export async function creaEmailTemplate(dati) {
-  const res = await fetch(BASE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(dati),
-  });
-  const corpo = await res.json();
-  if (!res.ok) throw new Error(corpo.errore || 'Errore creazione');
-  return corpo;
+  return apiJson(BASE, { method: 'POST', body: JSON.stringify(dati) });
 }
 
 export async function aggiornaEmailTemplate(id, dati) {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(dati),
-  });
-  const corpo = await res.json();
-  if (!res.ok) throw new Error(corpo.errore || 'Errore aggiornamento');
-  return corpo;
+  return apiJson(`${BASE}/${id}`, { method: 'PUT', body: JSON.stringify(dati) });
 }
 
 export async function eliminaEmailTemplate(id) {
-  const res = await fetch(`${BASE}/${id}`, { method: 'DELETE' });
-  if (!res.ok) { const c = await res.json(); throw new Error(c.errore || 'Errore eliminazione'); }
+  const res = await apiFetch(`${BASE}/${id}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const c = await res.json().catch(() => ({}));
+    throw new Error(c.errore || 'Errore eliminazione');
+  }
 }
 
-// Sostituisce i segnaposto nel testo con i dati reali del candidato/posizione
 export function applicaSegnaposto(testo, { nome = '', cognome = '', email = '', telefono = '', ruolo_candidato = '', posizione = '' } = {}) {
   return testo
     .replace(/\{\{nome\}\}/gi, nome)
