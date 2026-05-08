@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { generaToken, AUTH_ENABLED } from '../middleware/auth.js';
+import jwt from 'jsonwebtoken';
+import { generaToken, AUTH_ENABLED, JWT_SECRET } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -24,9 +25,17 @@ router.post('/login', (req, res) => {
   res.json({ token, username });
 });
 
-// GET /api/auth/verifica — controlla se il token è valido
+// GET /api/auth/verifica — controlla se auth è abilitata e se il token è valido
 router.get('/verifica', (req, res) => {
-  res.json({ autenticazioneAbilitata: AUTH_ENABLED, utente: req.utente?.username ?? null });
+  const header = req.headers.authorization ?? '';
+  const token  = header.startsWith('Bearer ') ? header.slice(7) : (req.query.token ?? null);
+
+  let utente = null;
+  if (token) {
+    try { utente = jwt.verify(token, JWT_SECRET).username; } catch { /* token scaduto o invalido */ }
+  }
+
+  res.json({ autenticazioneAbilitata: AUTH_ENABLED, utente });
 });
 
 export default router;
