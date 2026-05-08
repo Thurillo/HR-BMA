@@ -3,8 +3,7 @@ import { DragDropContext } from '@hello-pangea/dnd';
 import KanbanColonna from './KanbanColonna';
 import DettagliModale from './DettagliModale';
 import { getCandidati, aggiornaStatus } from '../api/candidati';
-
-const STATI = ['Nuovo', '1° Colloquio', '2° Colloquio', 'Offerta', 'Assunto', 'Scartato'];
+import { STATI_CANDIDATO as STATI } from '../config/stati';
 
 export default function KanbanBoard() {
   const [candidati, setCandidati] = useState([]);
@@ -17,7 +16,7 @@ export default function KanbanBoard() {
       setCaricamento(true);
       setErrore(null);
       const dati = await getCandidati();
-      setCandidati(dati);
+      setCandidati(Array.isArray(dati) ? dati : (dati.dati ?? []));
     } catch (err) {
       setErrore(err.message);
     } finally {

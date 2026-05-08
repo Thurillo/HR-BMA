@@ -1,15 +1,16 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { STATI_CANDIDATO } from '../config/stati.js';
 
 const router = Router();
-const FASI_VALIDE = ['Nuovo', '1° Colloquio', '2° Colloquio', 'Offerta', 'Assunto', 'Scartato'];
+const FASI_VALIDE = STATI_CANDIDATO;
 const MAX_PER_FASE = 10;
 
 // GET /api/email-templates — tutti i modelli, ordinati per fase e nome
 router.get('/', async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT * FROM email_templates ORDER BY fase, nome'
+      'SELECT id, fase, nome, oggetto, corpo, created_at FROM email_templates ORDER BY fase, nome'
     );
     res.json(rows);
   } catch (err) {

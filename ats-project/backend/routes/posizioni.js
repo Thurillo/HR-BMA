@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { STATI_CANDIDATO, STATI_POSIZIONE } from '../config/stati.js';
 
 const router = Router();
 
@@ -112,8 +113,7 @@ router.post('/:id/candidati', async (req, res) => {
 // PUT /api/posizioni/:id/candidati/:cid/status
 router.put('/:id/candidati/:cid/status', async (req, res) => {
   const { status } = req.body;
-  const statiValidi = ['Nuovo', '1° Colloquio', '2° Colloquio', 'Offerta', 'Assunto', 'Scartato'];
-  if (!status || !statiValidi.includes(status)) {
+  if (!status || !STATI_CANDIDATO.includes(status)) {
     return res.status(400).json({ errore: 'Stato non valido' });
   }
   try {
