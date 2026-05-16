@@ -6,7 +6,9 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Thurill\\\\Documents\\\\Claude\\\\Projects\\\\HR-BMA\\\\HR-BMA\\\\ats-project\\\\frontend\\\\src\" -Recurse | Where-Object {-not $_.PSIsContainer} | Select-Object FullName)",
       "Bash(Select-Object FullName)",
       "Bash(npm install *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "WebFetch(domain:192.168.21.11)",
+      "Bash(curl *)"
     ]
   }
 }

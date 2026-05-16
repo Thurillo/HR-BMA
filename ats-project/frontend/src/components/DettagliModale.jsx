@@ -69,12 +69,12 @@ function Sezione({ titolo, accent, children, defaultOpen = true }) {
 function AiSintesiBox({ testo }) {
   if (!testo) return null;
   return (
-    <div className="bg-teal-50 border border-teal-200 rounded-xl px-5 py-4">
+    <div className="rounded-xl px-5 py-4" style={{ background: 'linear-gradient(135deg, #eef2ff, #f5f3ff)', border: '1px solid #c7d2fe' }}>
       <div className="flex items-center gap-2 mb-2.5">
-        <span className="bg-teal-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wide">AI</span>
-        <span className="text-xs font-semibold text-teal-700 uppercase tracking-wider">Sintesi professionale</span>
+        <span className="text-white text-[10px] font-bold px-2 py-1 rounded-lg tracking-wide" style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}>✦ AI</span>
+        <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Sintesi professionale</span>
       </div>
-      <p className="text-sm text-teal-900 leading-relaxed whitespace-pre-wrap">{testo}</p>
+      <p className="text-sm text-indigo-900 leading-relaxed whitespace-pre-wrap">{testo}</p>
     </div>
   );
 }
@@ -228,16 +228,19 @@ function StatusCard({ candidato, onStatusChange }) {
   }
 
   return (
-    <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 flex flex-col gap-3">
-      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Stato candidato</p>
-      <span className={`inline-flex items-center gap-2 text-sm font-semibold px-3 py-1.5 rounded-full w-fit ${s.bg} ${s.text}`}>
-        <span className={`w-2 h-2 rounded-full ${s.dot}`} />
+    <div className="rounded-xl p-4 flex flex-col gap-3" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Stato candidato</p>
+      <span className={`status-pill w-fit ${s.bg} ${s.text}`}>
+        <span className={`w-1.5 h-1.5 rounded-full inline-block ${s.dot}`} />
         {candidato.status || 'Non impostato'}
       </span>
       <div>
-        <label className="text-xs text-slate-400 mb-1 block">Cambia stato</label>
+        <label className="text-[11px] text-slate-400 mb-1.5 block font-medium">Cambia stato</label>
         <select value={candidato.status ?? ''} onChange={handleChange} disabled={cambio}
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 transition disabled:opacity-60">
+          className="w-full rounded-xl text-sm focus:outline-none transition disabled:opacity-60 px-3 py-2"
+          style={{ border: '1.5px solid #e2e8f0', background: '#ffffff' }}
+          onFocus={e => { e.target.style.borderColor = '#818cf8'; e.target.style.boxShadow = '0 0 0 3px rgba(129,140,248,0.15)'; }}
+          onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}>
           {STATI_CANDIDATO.map(s => <option key={s}>{s}</option>)}
         </select>
       </div>
@@ -274,11 +277,11 @@ function NoteReclutatore({ nota, candidatoId, onNoteAggiornate }) {
         className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-300 resize-y focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
       />
       <button onClick={salva} disabled={salv}
-        className={`text-xs font-semibold px-3 py-2 rounded-lg transition self-end ${
-          salvato
-            ? 'bg-teal-50 text-teal-700 border border-teal-200'
-            : 'bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-60'
-        }`}>
+        className="text-xs font-semibold px-3 py-2 rounded-lg transition self-end"
+        style={salvato
+          ? { background: '#eef2ff', color: '#4f46e5', border: '1px solid #c7d2fe' }
+          : { background: 'linear-gradient(135deg,#6366f1,#4f46e5)', color: '#fff', opacity: salv ? 0.6 : 1 }
+        }>
         {salv ? 'Salvataggio…' : salvato ? '✓ Salvato' : 'Salva nota'}
       </button>
     </div>
@@ -405,15 +408,16 @@ export default function DettagliModale({ candidato: candidatoIniziale, onChiudi,
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6"
-      style={{ background: 'rgba(2,6,23,0.65)', backdropFilter: 'blur(6px)' }}
-      onClick={e => e.target === e.currentTarget && onChiudi()}>
-
-      <div className="bg-slate-50 rounded-3xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden"
-        style={{ boxShadow: '0 40px 80px -16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)' }}>
+    <div
+      className="modal-overlay"
+      onClick={e => e.target === e.currentTarget && onChiudi()}
+    >
+      <div
+        className="bg-slate-50 rounded-3xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden"
+        style={{ boxShadow: '0 40px 80px -16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)', animation: 'slideUp 0.25s cubic-bezier(0.16,1,0.3,1) both' }}>
 
         {/* ── Header ── */}
-        <div className="bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900 px-9 pt-9 pb-7 shrink-0 relative">
+        <div className="px-9 pt-9 pb-7 shrink-0 relative" style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e1b4b 100%)' }}>
 
           {/* Icone angolo */}
           <div className="absolute top-4 right-4 flex items-center gap-1">
@@ -441,7 +445,7 @@ export default function DettagliModale({ candidato: candidatoIniziale, onChiudi,
 
           {/* Identità */}
           <div className="flex items-center gap-5 pr-36">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shrink-0 shadow-lg">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-lg" style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}>
               <span className="text-white text-2xl font-extrabold tracking-tight">{iniziali(candidato)}</span>
             </div>
             <div className="min-w-0">
@@ -458,7 +462,7 @@ export default function DettagliModale({ candidato: candidatoIniziale, onChiudi,
             <div className="flex items-center gap-3">
               {modalita === 'vista' ? (
                 <button onClick={avviaModifica}
-                  className="flex items-center gap-2 text-sm font-bold bg-white text-slate-800 px-4 py-2 rounded-xl hover:bg-teal-50 transition shadow">
+                  className="flex items-center gap-2 text-sm font-bold bg-white text-indigo-700 px-4 py-2 rounded-xl hover:bg-indigo-50 transition shadow">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-2a2 2 0 01.586-1.414z"/>
                   </svg>
@@ -471,7 +475,8 @@ export default function DettagliModale({ candidato: candidatoIniziale, onChiudi,
                     Annulla
                   </button>
                   <button onClick={salva} disabled={salvataggio}
-                    className="flex items-center gap-2 text-sm font-bold text-white px-4 py-2 rounded-xl transition shadow disabled:opacity-60 bg-teal-600 hover:bg-teal-500">
+                    className="flex items-center gap-2 text-sm font-bold text-white px-4 py-2 rounded-xl transition shadow disabled:opacity-60"
+                    style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}>
                     {salvataggio
                       ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Salvataggio…</>
                       : '✓ Salva modifiche'}

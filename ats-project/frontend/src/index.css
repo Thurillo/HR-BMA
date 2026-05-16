@@ -1,27 +1,342 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════
+   DESIGN SYSTEM — HR-BMA ATS
+   Stack: Tailwind CSS v4 + Inter + custom tokens
+   ═══════════════════════════════════════════════════════ */
+
 @theme {
+  /* ── Brand / Primary (Deep Indigo) ── */
+  --color-brand-50:   #eef2ff;
+  --color-brand-100:  #e0e7ff;
+  --color-brand-200:  #c7d2fe;
+  --color-brand-400:  #818cf8;
+  --color-brand-500:  #6366f1;
+  --color-brand-600:  #4f46e5;
+  --color-brand-700:  #4338ca;
+  --color-brand-800:  #3730a3;
+  --color-brand-900:  #312e81;
+
+  /* ── Teal accent (mantenuto per compatibilità) ── */
   --color-teal-50:  #f0fdfa;
   --color-teal-100: #ccfbf1;
   --color-teal-200: #99f6e4;
+  --color-teal-300: #5eead4;
+  --color-teal-400: #2dd4bf;
   --color-teal-500: #14b8a6;
   --color-teal-600: #0d9488;
   --color-teal-700: #0f766e;
   --color-teal-800: #115e59;
   --color-teal-900: #134e4a;
-  --color-sidebar:  #0d1f1e;
-  --font-sans: 'DM Sans', system-ui, sans-serif;
+
+  /* ── Sidebar ── */
+  --color-sidebar:       #0f1729;
+  --color-sidebar-hover: rgba(255,255,255,0.06);
+  --color-sidebar-active: rgba(99,102,241,0.18);
+
+  /* ── Semantici candidato ── */
+  --color-stato-nuovo:     #64748b;
+  --color-stato-colloquio: #3b82f6;
+  --color-stato-offerta:   #f59e0b;
+  --color-stato-assunto:   #10b981;
+  --color-stato-scartato:  #ef4444;
+
+  /* ── Superfici ── */
+  --color-surface:         #ffffff;
+  --color-surface-raised:  #f8fafc;
+  --color-surface-overlay: rgba(15,23,41,0.6);
+
+  /* ── Bordi ── */
+  --color-border:       #e2e8f0;
+  --color-border-muted: #f1f5f9;
+
+  /* ── Font ── */
+  --font-sans: 'Inter', 'DM Sans', system-ui, sans-serif;
+
+  /* ── Animazioni ── */
+  --animate-fade-in:    fadeIn 0.18s ease-out both;
+  --animate-slide-up:   slideUp 0.22s cubic-bezier(0.16,1,0.3,1) both;
+  --animate-pulse-slow: pulseSlow 3s ease-in-out infinite;
 }
 
-* {
+/* ═══════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════ */
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   font-family: var(--font-sans);
   background-color: #f1f5f9;
   color: #1e293b;
-  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+  font-feature-settings: "cv02","cv03","cv04","cv11";
 }
+
+/* ═══════════════════════════════════════════════════════
+   SCROLLBAR CUSTOM
+   ═══════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ═══════════════════════════════════════════════════════
+   KEYFRAMES
+   ═══════════════════════════════════════════════════════ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseSlow {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+
+@keyframes barGrow {
+  from { width: 0%; }
+  to   { width: var(--bar-width, 0%); }
+}
+
+/* ═══════════════════════════════════════════════════════
+   UTILITÀ GLOBALI
+   ═══════════════════════════════════════════════════════ */
+
+/* Animazione ingresso pagina */
+.page-enter {
+  animation: slideUp 0.25s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* Card glass effect */
+.glass-card {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.6);
+}
+
+/* Skeleton loader */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f1f5f9 25%,
+    #e2e8f0 50%,
+    #f1f5f9 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0.5rem;
+}
+
+/* Sidebar nav link base */
+.nav-link {
+  display: flex;
+  align-items: center;
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+  color: rgba(148,163,184,1);
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.nav-link:hover {
+  background: var(--color-sidebar-hover);
+  color: #ffffff;
+}
+
+.nav-link.active {
+  background: var(--color-sidebar-active);
+  color: #a5b4fc;
+}
+
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: #818cf8;
+  border-radius: 0 3px 3px 0;
+}
+
+/* Badge status pills */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+/* KPI card accent bar animation */
+.kpi-accent-bar {
+  animation: barGrow 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* Focus ring globale */
+:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+}
+
+/* Input style condiviso */
+.input-base {
+  width: 100%;
+  border-radius: 0.625rem;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  color: #1e293b;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: var(--font-sans);
+}
+
+.input-base:focus {
+  outline: none;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129,140,248,0.15);
+}
+
+.input-base::placeholder {
+  color: #94a3b8;
+}
+
+/* Tooltip */
+[data-tooltip] {
+  position: relative;
+}
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1e293b;
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 100;
+}
+[data-tooltip]:hover::after {
+  opacity: 1;
+}
+
+/* Tabella row hover */
+.table-row-hover {
+  transition: background 0.12s ease;
+}
+.table-row-hover:hover {
+  background: rgba(238,242,255,0.5);
+}
+
+/* Button primario */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.625rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(79,70,229,0.3), 0 1px 2px rgba(0,0,0,0.06);
+  transition: box-shadow 0.15s, transform 0.1s, filter 0.15s;
+}
+.btn-primary:hover {
+  box-shadow: 0 4px 12px rgba(79,70,229,0.4);
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* Button secondario */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.625rem;
+  border: 1.5px solid #e2e8f0;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #c7d2fe;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* Modale overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(15,23,41,0.65);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.15s ease-out both;
+}
+
+/* Section header in modale */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.section-header:hover { background: #f8fafc; }
