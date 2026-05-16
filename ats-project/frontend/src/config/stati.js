@@ -25,7 +25,7 @@ export const BADGE_STATUS = {
   '1° Colloquio':   { bg: 'bg-blue-100',    text: 'text-blue-800',    dot: 'bg-blue-500'   },
   '2° Colloquio':   { bg: 'bg-indigo-100',  text: 'text-indigo-800',  dot: 'bg-indigo-500' },
   'Offerta':        { bg: 'bg-amber-100',   text: 'text-amber-800',   dot: 'bg-amber-500'  },
-  'Assunto':        { bg: 'bg-green-100',   text: 'text-green-800',   dot: 'bg-green-500'  },
+  'Assunto':        { bg: 'bg-teal-100',    text: 'text-teal-800',    dot: 'bg-teal-500'   },
   'Scartato':       { bg: 'bg-red-100',     text: 'text-red-700',     dot: 'bg-red-500'    },
 };
 
@@ -34,7 +34,7 @@ export const BADGE_KANBAN = {
   '1° Colloquio':   'bg-blue-50 text-blue-700 border-blue-200',
   '2° Colloquio':   'bg-indigo-50 text-indigo-700 border-indigo-200',
   'Offerta':        'bg-amber-50 text-amber-700 border-amber-200',
-  'Assunto':        'bg-green-50 text-green-700 border-green-200',
+  'Assunto':        'bg-teal-50 text-teal-700 border-teal-200',
   'Scartato':       'bg-red-50 text-red-600 border-red-200',
 };
 
@@ -43,6 +43,6 @@ export const COL_HEADER_KANBAN = {
   '1° Colloquio':   'bg-blue-50 border-blue-200 text-blue-700',
   '2° Colloquio':   'bg-indigo-50 border-indigo-200 text-indigo-700',
   'Offerta':        'bg-amber-50 border-amber-200 text-amber-700',
-  'Assunto':        'bg-green-50 border-green-200 text-green-700',
+  'Assunto':        'bg-teal-50 border-teal-200 text-teal-700',
   'Scartato':       'bg-red-50 border-red-200 text-red-600',
 };

@@ -16,19 +16,23 @@ const COLONNE = [
   { key: 'last_name',         label: 'Cognome' },
   { key: 'first_name',        label: 'Nome' },
   { key: 'email',             label: 'Email' },
-  { key: 'phone',             label: 'Telefono' },
   { key: 'current_role',      label: 'Ruolo' },
   { key: 'macro_sector',      label: 'Settore' },
   { key: 'seniority',         label: 'Seniority' },
   { key: 'status',            label: 'Stato' },
-  { key: 'ral_indicata',      label: 'RAL' },
-  { key: 'modalita_lavoro',   label: 'Modalità' },
+  { key: 'hard_skills',       label: 'Competenze' },
   { key: 'location',          label: 'Sede' },
 ];
 
+function parseSkills(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  try { const p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch { return []; }
+}
+
 function IconSort({ attiva, dir }) {
   return (
-    <svg className={`w-3 h-3 inline ml-1 ${attiva ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+    <svg className={`w-3 h-3 inline ml-1 ${attiva ? 'text-teal-600' : 'text-slate-300'}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
       {dir === 'asc'
         ? <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7"/>
         : <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>}
@@ -36,13 +40,16 @@ function IconSort({ attiva, dir }) {
   );
 }
 
-function KpiCard({ icona, valore, etichetta, colore }) {
+function KpiCard({ icona, valore, etichetta, accentClass }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 px-6 py-5 flex items-center gap-5 shadow-sm">
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${colore}`}>{icona}</div>
-      <div>
-        <p className="text-2xl font-bold text-slate-900 leading-none">{valore}</p>
-        <p className="text-xs text-slate-500 mt-1.5 leading-none">{etichetta}</p>
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex">
+      <div className={`w-1.5 shrink-0 ${accentClass}`} />
+      <div className="flex-1 px-5 py-4 flex items-center gap-4">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${accentClass} bg-opacity-10`}>{icona}</div>
+        <div>
+          <p className="text-xl font-bold text-slate-900 leading-none tabular-nums">{valore}</p>
+          <p className="text-xs text-slate-500 mt-1.5 leading-none">{etichetta}</p>
+        </div>
       </div>
     </div>
   );
@@ -53,7 +60,7 @@ function Paginazione({ pagina, totale, perPagina, onChange }) {
   if (totalePagine <= 1) return null;
 
   const btnCls = "px-3 py-1.5 rounded-lg text-sm font-medium transition";
-  const attivoCls = `${btnCls} bg-violet-600 text-white`;
+  const attivoCls = `${btnCls} bg-teal-600 text-white`;
   const normaleCls = `${btnCls} text-slate-600 hover:bg-slate-100 border border-slate-200`;
   const disabCls   = `${btnCls} text-slate-300 cursor-not-allowed border border-slate-100`;
 
@@ -120,7 +127,7 @@ function ModaleNuovoCandidato({ onChiudi, onCreato }) {
       <div>
         <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">{label}</label>
         <input type={tipo} value={form[key]} onChange={e => set(key, e.target.value)}
-          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition bg-white" {...props} />
+          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition bg-white" {...props} />
       </div>
     );
   }
@@ -155,7 +162,7 @@ function ModaleNuovoCandidato({ onChiudi, onCreato }) {
             <div>
               <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Stato</label>
               <select value={form.status} onChange={e => set('status', e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition bg-white">
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition bg-white">
                 {STATI_CANDIDATO.map(s => <option key={s}>{s}</option>)}
               </select>
             </div>
@@ -163,7 +170,7 @@ function ModaleNuovoCandidato({ onChiudi, onCreato }) {
           <div>
             <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Sintesi professionale</label>
             <textarea rows={3} value={form.executive_summary} onChange={e => set('executive_summary', e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition bg-white" />
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition bg-white" />
           </div>
           {errore && <p className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl border border-red-200">{errore}</p>}
           <div className="flex gap-2 justify-end pt-1 pb-1">
@@ -172,8 +179,7 @@ function ModaleNuovoCandidato({ onChiudi, onCreato }) {
               Annulla
             </button>
             <button type="submit" disabled={invio}
-              className="text-sm font-semibold text-white px-5 py-2.5 rounded-xl transition disabled:opacity-60 shadow-sm hover:shadow-md"
-              style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)' }}>
+              className="text-sm font-semibold text-white px-5 py-2.5 rounded-xl transition disabled:opacity-60 shadow-sm hover:shadow-md bg-teal-600 hover:bg-teal-700">
               {invio ? 'Salvataggio…' : 'Crea candidato'}
             </button>
           </div>
@@ -190,6 +196,7 @@ export default function PaginaCandidati() {
   const [sortKey, setSortKey]           = useState('last_name');
   const [sortDir, setSortDir]           = useState('asc');
   const [filtro, setFiltro]             = useState('');
+  const [filtroStato, setFiltroStato]   = useState('');
   const [pagina, setPagina]             = useState(1);
   const [perPagina]                     = useState(PAGINA_DEFAULT);
   const [selezionato, setSelezionato]   = useState(null);
@@ -215,6 +222,7 @@ export default function PaginaCandidati() {
   useEffect(() => { carica(); }, [carica]);
 
   function toggleSort(key) {
+    if (COLONNE.find(c => c.key === key)?.key === 'hard_skills') return;
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortKey(key); setSortDir('asc'); }
     setPagina(1);
@@ -226,10 +234,10 @@ export default function PaginaCandidati() {
   }
 
   const filtrati = candidati.filter(c => {
-    if (!filtro.trim()) return true;
-    const q = filtro.toLowerCase();
-    return [c.first_name, c.last_name, c.email, c.current_role, c.macro_sector, c.location, c.status]
-      .some(v => v && String(v).toLowerCase().includes(q));
+    const matchTesto = !filtro.trim() || [c.first_name, c.last_name, c.email, c.current_role, c.macro_sector, c.location, c.status]
+      .some(v => v && String(v).toLowerCase().includes(filtro.toLowerCase()));
+    const matchStato = !filtroStato || c.status === filtroStato;
+    return matchTesto && matchStato;
   });
 
   const ordinati = [...filtrati].sort((a, b) => {
@@ -237,7 +245,6 @@ export default function PaginaCandidati() {
     return sortDir === 'asc' ? cmp : -cmp;
   });
 
-  // Paginazione display (lato client, sort/filtro funzionano su tutti i dati)
   const totalePagine   = Math.ceil(ordinati.length / perPagina);
   const paginaCorretta = Math.min(pagina, totalePagine || 1);
   const paginati       = ordinati.slice((paginaCorretta - 1) * perPagina, paginaCorretta * perPagina);
@@ -247,8 +254,7 @@ export default function PaginaCandidati() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Reset pagina quando cambia il filtro
-  useEffect(() => { setPagina(1); }, [filtro]);
+  useEffect(() => { setPagina(1); }, [filtro, filtroStato]);
 
   async function onFileImport(e) {
     const file = e.target.files[0];
@@ -291,57 +297,99 @@ export default function PaginaCandidati() {
   );
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-7">
 
       {/* KPI */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <KpiCard valore={candidati.length} etichetta="Totale candidati" colore="bg-gradient-to-br from-indigo-500 to-violet-600"
-          icona={<svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-5a4 4 0 11-8 0 4 4 0 018 0z"/></svg>} />
-        <KpiCard valore={inColloquio} etichetta="In colloquio" colore="bg-gradient-to-br from-blue-500 to-indigo-500"
-          icona={<svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>} />
-        <KpiCard valore={assunti} etichetta="Assunti" colore="bg-gradient-to-br from-emerald-500 to-teal-600"
-          icona={<svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>} />
+        <KpiCard
+          valore={candidati.length}
+          etichetta="Totale candidati"
+          accentClass="bg-teal-600"
+          icona={<svg className="w-5 h-5 text-teal-700" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-5a4 4 0 11-8 0 4 4 0 018 0z"/></svg>}
+        />
+        <KpiCard
+          valore={inColloquio}
+          etichetta="In colloquio"
+          accentClass="bg-blue-500"
+          icona={<svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>}
+        />
+        <KpiCard
+          valore={assunti}
+          etichetta="Assunti"
+          accentClass="bg-teal-500"
+          icona={<svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>}
+        />
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <p className="text-sm text-slate-400 mr-auto">
-          {filtrati.length === candidati.length
-            ? `${candidati.length} candidati`
-            : `${filtrati.length} di ${candidati.length} candidati`}
-        </p>
-        <div className="relative">
-          <svg className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
-          </svg>
-          <input type="text" value={filtro} onChange={e => setFiltro(e.target.value)} placeholder="Cerca candidati…"
-            className="pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 w-56 shadow-sm transition" />
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <p className="text-sm text-slate-400 mr-auto">
+            {filtrati.length === candidati.length
+              ? `${candidati.length} candidati`
+              : `${filtrati.length} di ${candidati.length} candidati`}
+          </p>
+          <div className="relative">
+            <svg className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+            </svg>
+            <input type="text" value={filtro} onChange={e => setFiltro(e.target.value)} placeholder="Cerca candidati…"
+              className="pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 w-56 shadow-sm transition" />
+          </div>
+          <button onClick={() => window.open(urlExport(), '_blank')} title="Esporta tutti i candidati in JSON"
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition shadow-sm shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 8l-3-3m3 3l3-3"/>
+            </svg>
+            Esporta
+          </button>
+          <button onClick={() => inputFileRef.current?.click()} disabled={importando} title="Importa candidati da file JSON"
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition shadow-sm shrink-0 disabled:opacity-60">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12l-3 3m3-3l3 3"/>
+            </svg>
+            {importando ? 'Importazione…' : 'Importa'}
+          </button>
+          <input ref={inputFileRef} type="file" accept=".json" className="hidden" onChange={onFileImport} />
+          <button onClick={() => setMostraNuovo(true)}
+            className="flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-xl text-white transition shadow-sm hover:shadow-md shrink-0 bg-teal-600 hover:bg-teal-700">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nuovo candidato
+          </button>
         </div>
-        <button onClick={() => window.open(urlExport(), '_blank')} title="Esporta tutti i candidati in JSON"
-          className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition shadow-sm shrink-0">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 8l-3-3m3 3l3-3"/>
-          </svg>
-          Esporta
-        </button>
-        <button onClick={() => inputFileRef.current?.click()} disabled={importando} title="Importa candidati da file JSON"
-          className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2.5 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition shadow-sm shrink-0 disabled:opacity-60">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12l-3 3m3-3l3 3"/>
-          </svg>
-          {importando ? 'Importazione…' : 'Importa'}
-        </button>
-        <input ref={inputFileRef} type="file" accept=".json" className="hidden" onChange={onFileImport} />
-        <button onClick={() => setMostraNuovo(true)}
-          className="flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-xl text-white transition shadow-sm hover:shadow-md shrink-0"
-          style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)' }}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
-          </svg>
-          Nuovo candidato
-        </button>
+
+        {/* Filtri stato a pillole */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setFiltroStato('')}
+            className={`text-xs font-medium px-3 py-1.5 rounded-full transition ${
+              filtroStato === ''
+                ? 'bg-slate-700 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            Tutti
+          </button>
+          {STATI_CANDIDATO.map(stato => (
+            <button
+              key={stato}
+              onClick={() => setFiltroStato(s => s === stato ? '' : stato)}
+              className={`text-xs font-medium px-3 py-1.5 rounded-full transition flex items-center gap-1.5 ${
+                filtroStato === stato
+                  ? 'bg-teal-600 text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-teal-50 hover:text-teal-700'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${filtroStato === stato ? 'bg-white' : (DOT_STATUS[stato] ?? 'bg-slate-400')}`} />
+              {stato}
+            </button>
+          ))}
+        </div>
+
         {msgImport && (
-          <div className={`w-full text-sm px-4 py-2.5 rounded-xl border ${msgImport.tipo === 'ok' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
+          <div className={`w-full text-sm px-4 py-2.5 rounded-xl border ${msgImport.tipo === 'ok' ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
             {msgImport.testo}
           </div>
         )}
@@ -354,15 +402,17 @@ export default function PaginaCandidati() {
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/60">
                 {COLONNE.map(col => (
-                  <th key={col.key} onClick={() => toggleSort(col.key)}
-                    className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer select-none hover:text-violet-600 transition whitespace-nowrap first:pl-8">
+                  <th key={col.key}
+                    onClick={() => col.key !== 'hard_skills' && toggleSort(col.key)}
+                    className={`px-5 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider select-none whitespace-nowrap first:pl-7
+                      ${col.key !== 'hard_skills' ? 'cursor-pointer hover:text-teal-600 transition' : ''}`}>
                     <span className="flex items-center gap-1">
                       {col.label}
-                      <IconSort attiva={sortKey === col.key} dir={sortKey === col.key ? sortDir : 'asc'} />
+                      {col.key !== 'hard_skills' && <IconSort attiva={sortKey === col.key} dir={sortKey === col.key ? sortDir : 'asc'} />}
                     </span>
                   </th>
                 ))}
-                <th className="px-6 py-4 pr-8 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Azioni</th>
+                <th className="px-5 py-4 pr-7 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Azioni</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -373,35 +423,54 @@ export default function PaginaCandidati() {
                   </td>
                 </tr>
               ) : paginati.map(c => (
-                <tr key={c.id} className="hover:bg-violet-50/20 transition-colors">
+                <tr key={c.id} className="hover:bg-teal-50/30 transition-colors">
                   {COLONNE.map((col, ci) => (
-                    <td key={col.key} className={`px-6 py-4 max-w-[200px] ${ci === 0 ? 'pl-8' : ''}`}>
+                    <td key={col.key} className={`px-5 py-3.5 max-w-[180px] ${ci === 0 ? 'pl-7' : ''}`}>
                       {col.key === 'status' ? (
                         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${DOT_STATUS[c.status] ?? 'bg-slate-400'}`} />
                           <span className={`text-xs font-medium ${LABEL_STATUS[c.status] ?? 'text-slate-600'}`}>{c.status ?? '—'}</span>
                         </span>
+                      ) : col.key === 'hard_skills' ? (
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {(() => {
+                            const skills = parseSkills(c.hard_skills);
+                            const visibili = skills.slice(0, 3);
+                            const resto   = skills.length - 3;
+                            return (
+                              <>
+                                {visibili.map((s, i) => (
+                                  <span key={i} className="bg-slate-100 text-slate-600 text-[11px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap">
+                                    {s}
+                                  </span>
+                                ))}
+                                {resto > 0 && (
+                                  <span className="text-[11px] text-slate-400 font-medium">+{resto}</span>
+                                )}
+                                {skills.length === 0 && <span className="text-slate-300 text-xs">—</span>}
+                              </>
+                            );
+                          })()}
+                        </div>
                       ) : col.key === 'last_name' || col.key === 'first_name' ? (
                         <span className="text-sm font-semibold text-slate-800 truncate block" title={c[col.key] ?? ''}>
                           {c[col.key] ?? <span className="text-slate-300 font-normal">—</span>}
                         </span>
                       ) : col.key === 'email' ? (
                         <span className="text-sm text-slate-500 truncate block" title={c.email ?? ''}>{c.email ?? <span className="text-slate-300">—</span>}</span>
-                      ) : col.key === 'phone' ? (
-                        <span className="text-sm text-slate-500 whitespace-nowrap block">{c.phone ?? <span className="text-slate-300">—</span>}</span>
                       ) : (
                         <span className="text-sm text-slate-600 truncate block" title={c[col.key] ?? ''}>{c[col.key] ?? <span className="text-slate-300">—</span>}</span>
                       )}
                     </td>
                   ))}
-                  <td className="px-6 py-4 pr-8 text-right">
+                  <td className="px-5 py-3.5 pr-7 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button onClick={() => setSelezionato(c)} title="Apri scheda candidato"
-                        className="text-sm font-semibold text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 border border-indigo-200 hover:border-indigo-600 px-3.5 py-1.5 rounded-lg transition whitespace-nowrap">
+                        className="text-xs font-semibold text-teal-700 hover:text-white bg-teal-50 hover:bg-teal-600 border border-teal-200 hover:border-teal-600 px-3 py-1.5 rounded-lg transition whitespace-nowrap">
                         Apri scheda
                       </button>
                       <button onClick={() => setDaEliminare(c)} title="Elimina candidato"
-                        className="text-sm font-semibold text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-200 hover:border-red-500 px-3.5 py-1.5 rounded-lg transition whitespace-nowrap">
+                        className="text-xs font-semibold text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-200 hover:border-red-500 px-3 py-1.5 rounded-lg transition whitespace-nowrap">
                         Elimina
                       </button>
                     </div>
@@ -412,9 +481,8 @@ export default function PaginaCandidati() {
           </table>
         </div>
 
-        {/* Paginazione */}
         {ordinati.length > perPagina && (
-          <div className="px-8 py-4 border-t border-slate-100">
+          <div className="px-7 py-4 border-t border-slate-100">
             <Paginazione pagina={paginaCorretta} totale={ordinati.length} perPagina={perPagina} onChange={cambiaPagina} />
           </div>
         )}

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { aggiornaAnagrafica } from '../api/candidati';
+import { aggiornaAnagrafica, aggiornaStatus } from '../api/candidati';
 import { STATI_CANDIDATO, BADGE_STATUS } from '../config/stati';
 
 const CAMPI_NASCOSTI = new Set(['id', 'created_at', 'updated_at', 'extra_data', 'note']);
@@ -19,15 +19,14 @@ const ETICHETTE = {
 
 const PILL_STYLE = {
   hard_skills:    'bg-blue-50 text-blue-800 border border-blue-200',
-  soft_skills:    'bg-emerald-50 text-emerald-800 border border-emerald-200',
+  soft_skills:    'bg-teal-50 text-teal-800 border border-teal-200',
   certificazioni: 'bg-amber-50 text-amber-800 border border-amber-200',
 };
 
 const SEZIONI_VISTA = [
-  { id: 'contatti',   titolo: 'Contatti',               accent: 'bg-sky-500',    campi: ['email', 'phone', 'location', 'linkedin_url', 'portfolio_url', 'file_path_smb'] },
-  { id: 'profilo',    titolo: 'Profilo professionale',   accent: 'bg-blue-600',   campi: ['current_role', 'years_experience', 'seniority', 'macro_sector', 'settore_prevalente', 'modalita_lavoro', 'ral_indicata', 'preavviso'] },
-  { id: 'formazione', titolo: 'Formazione & Competenze', accent: 'bg-violet-500', campi: ['max_education', 'ambito_studi', 'universita', 'hard_skills', 'soft_skills', 'certificazioni'] },
-  { id: 'sintesi',    titolo: 'Sintesi professionale',   accent: 'bg-slate-500',  campi: ['executive_summary'] },
+  { id: 'contatti',   titolo: 'Anagrafica & Contatti',     accent: 'bg-teal-500',   campi: ['email', 'phone', 'location'] },
+  { id: 'profilo',    titolo: 'Profilo professionale',      accent: 'bg-blue-500',   campi: ['current_role', 'years_experience', 'seniority', 'macro_sector', 'settore_prevalente', 'modalita_lavoro', 'ral_indicata', 'preavviso'] },
+  { id: 'formazione', titolo: 'Formazione',                 accent: 'bg-violet-500', campi: ['max_education', 'ambito_studi', 'universita'] },
 ];
 
 const SEZIONI_FORM = [
@@ -46,17 +45,89 @@ function arrayToString(v) { return Array.isArray(v) ? v.join(', ') : (v ?? ''); 
 function stringToArray(t) { return t.split(',').map(s => s.trim()).filter(Boolean); }
 function iniziali(c) { return `${c.first_name?.[0] ?? ''}${c.last_name?.[0] ?? ''}`.toUpperCase(); }
 
-function StatusBadge({ status }) {
-  const s = BADGE_STATUS[status] ?? { bg: 'bg-slate-100', text: 'text-slate-600', dot: 'bg-slate-400' };
+// ── Sezione collassabile ──────────────────────────────────────────────────────
+function Sezione({ titolo, accent, children, defaultOpen = true }) {
+  const [aperta, setAperta] = useState(defaultOpen);
   return (
-    <span className={`inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full ${s.bg} ${s.text}`}>
-      <span className={`w-2 h-2 rounded-full ${s.dot}`} />
-      {status}
-    </span>
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <button
+        onClick={() => setAperta(a => !a)}
+        className="w-full flex items-center gap-3 px-6 py-4 border-b border-slate-100 hover:bg-slate-50 transition text-left"
+      >
+        <div className={`w-1.5 h-5 rounded-full shrink-0 ${accent}`} />
+        <h3 className="flex-1 text-xs font-extrabold text-slate-700 uppercase tracking-widest">{titolo}</h3>
+        <svg className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${aperta ? '' : '-rotate-90'}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+      {aperta && <div className="px-6 py-5">{children}</div>}
+    </div>
   );
 }
 
-// ── Campo in sola lettura ─────────────────────────────────────────────────────
+// ── Box AI Sintesi ────────────────────────────────────────────────────────────
+function AiSintesiBox({ testo }) {
+  if (!testo) return null;
+  return (
+    <div className="bg-teal-50 border border-teal-200 rounded-xl px-5 py-4">
+      <div className="flex items-center gap-2 mb-2.5">
+        <span className="bg-teal-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wide">AI</span>
+        <span className="text-xs font-semibold text-teal-700 uppercase tracking-wider">Sintesi professionale</span>
+      </div>
+      <p className="text-sm text-teal-900 leading-relaxed whitespace-pre-wrap">{testo}</p>
+    </div>
+  );
+}
+
+// ── Skills tags ───────────────────────────────────────────────────────────────
+function SkillsSection({ candidato }) {
+  const hard = parseJson(candidato.hard_skills);
+  const soft = parseJson(candidato.soft_skills);
+  const cert = parseJson(candidato.certificazioni);
+
+  const haHard = Array.isArray(hard) && hard.length > 0;
+  const haSoft = Array.isArray(soft) && soft.length > 0;
+  const haCert = Array.isArray(cert) && cert.length > 0;
+
+  if (!haHard && !haSoft && !haCert) return null;
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100">
+        <div className="w-1.5 h-5 rounded-full shrink-0 bg-slate-400" />
+        <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-widest">Competenze & Certificazioni</h3>
+      </div>
+      <div className="px-6 py-5 flex flex-col gap-4">
+        {haHard && (
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Hard Skills</p>
+            <div className="flex flex-wrap gap-1.5">
+              {hard.map((v, i) => <span key={i} className="text-xs font-medium px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200">{v}</span>)}
+            </div>
+          </div>
+        )}
+        {haSoft && (
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Soft Skills</p>
+            <div className="flex flex-wrap gap-1.5">
+              {soft.map((v, i) => <span key={i} className="text-xs font-medium px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 border border-teal-200">{v}</span>)}
+            </div>
+          </div>
+        )}
+        {haCert && (
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Certificazioni</p>
+            <div className="flex flex-wrap gap-1.5">
+              {cert.map((v, i) => <span key={i} className="text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">{v}</span>)}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Campo vista ───────────────────────────────────────────────────────────────
 function CampoVista({ chiave, valore }) {
   if (valore === null || valore === undefined || valore === '') return null;
   const parsed = parseJson(valore);
@@ -67,9 +138,9 @@ function CampoVista({ chiave, valore }) {
 
   if (Array.isArray(parsed)) {
     contenuto = (
-      <div className="flex flex-wrap gap-2 mt-3">
+      <div className="flex flex-wrap gap-1.5 mt-2">
         {parsed.map((v, i) => (
-          <span key={i} className={`text-sm font-medium px-3.5 py-2 rounded-xl ${PILL_STYLE[chiave] ?? 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
+          <span key={i} className={`text-xs font-medium px-2.5 py-1 rounded-lg ${PILL_STYLE[chiave] ?? 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
             {v}
           </span>
         ))}
@@ -78,7 +149,7 @@ function CampoVista({ chiave, valore }) {
   } else if ((chiave === 'linkedin_url' || chiave === 'portfolio_url') && String(parsed).startsWith('http')) {
     contenuto = (
       <a href={parsed} target="_blank" rel="noreferrer"
-        className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 hover:underline text-base mt-2 break-all">
+        className="inline-flex items-center gap-1.5 text-teal-600 hover:text-teal-800 hover:underline text-sm mt-1.5 break-all">
         {parsed}
         <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -86,22 +157,22 @@ function CampoVista({ chiave, valore }) {
       </a>
     );
   } else {
-    contenuto = <p className="text-base text-slate-800 mt-2 leading-relaxed break-words">{String(parsed)}</p>;
+    contenuto = <p className="text-sm text-slate-800 mt-1.5 leading-relaxed break-words">{String(parsed)}</p>;
   }
 
   return (
     <div className={isFull ? 'col-span-2' : ''}>
-      <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">{ETICHETTE[chiave] || chiave}</p>
+      <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">{ETICHETTE[chiave] || chiave}</p>
       {contenuto}
     </div>
   );
 }
 
-// ── Campo in modifica ─────────────────────────────────────────────────────────
+// ── Campo modifica ────────────────────────────────────────────────────────────
 function CampoModifica({ chiave, valore, onChange }) {
   const etichetta = ETICHETTE[chiave] || chiave;
   const isFull = ['executive_summary', 'file_path_smb'].includes(chiave);
-  const cls = "mt-2 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-base text-slate-800 placeholder-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-0 transition";
+  const cls = "mt-1.5 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:border-teal-500 focus:ring-0 transition";
 
   let campo;
   if (chiave === 'status') {
@@ -117,7 +188,7 @@ function CampoModifica({ chiave, valore, onChange }) {
       <div>
         <input type="text" value={valore ?? ''} onChange={e => onChange(chiave, e.target.value)}
           placeholder="es. React, Node.js, SQL" className={cls} />
-        <p className="text-sm text-slate-400 mt-2 ml-1">Separa i valori con una virgola</p>
+        <p className="text-xs text-slate-400 mt-1.5 ml-1">Separa i valori con una virgola</p>
       </div>
     );
   } else if (chiave === 'years_experience') {
@@ -134,14 +205,132 @@ function CampoModifica({ chiave, valore, onChange }) {
 
   return (
     <div className={isFull ? 'col-span-2' : ''}>
-      <label className="text-sm font-bold text-slate-600">{etichetta}</label>
+      <label className="text-xs font-bold text-slate-600">{etichetta}</label>
       {campo}
     </div>
   );
 }
 
+// ── Pannello destro: Status card ──────────────────────────────────────────────
+function StatusCard({ candidato, onStatusChange }) {
+  const [cambio, setCambio]   = useState(false);
+  const [errore, setErrore]   = useState(null);
+  const s = BADGE_STATUS[candidato.status] ?? { bg: 'bg-slate-100', text: 'text-slate-600', dot: 'bg-slate-400' };
+
+  async function handleChange(e) {
+    const nuovoStato = e.target.value;
+    setCambio(true); setErrore(null);
+    try {
+      await aggiornaStatus(candidato.id, nuovoStato);
+      onStatusChange(nuovoStato);
+    } catch { setErrore('Errore aggiornamento stato'); }
+    finally { setCambio(false); }
+  }
+
+  return (
+    <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 flex flex-col gap-3">
+      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Stato candidato</p>
+      <span className={`inline-flex items-center gap-2 text-sm font-semibold px-3 py-1.5 rounded-full w-fit ${s.bg} ${s.text}`}>
+        <span className={`w-2 h-2 rounded-full ${s.dot}`} />
+        {candidato.status || 'Non impostato'}
+      </span>
+      <div>
+        <label className="text-xs text-slate-400 mb-1 block">Cambia stato</label>
+        <select value={candidato.status ?? ''} onChange={handleChange} disabled={cambio}
+          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 transition disabled:opacity-60">
+          {STATI_CANDIDATO.map(s => <option key={s}>{s}</option>)}
+        </select>
+      </div>
+      {errore && <p className="text-xs text-red-600">{errore}</p>}
+    </div>
+  );
+}
+
+// ── Pannello destro: Note reclutatore ─────────────────────────────────────────
+function NoteReclutatore({ nota, candidatoId, onNoteAggiornate }) {
+  const [testo, setTesto]     = useState(nota ?? '');
+  const [salv, setSalv]       = useState(false);
+  const [salvato, setSalvato] = useState(false);
+
+  async function salva() {
+    setSalv(true); setSalvato(false);
+    try {
+      await aggiornaAnagrafica(candidatoId, { note: testo });
+      onNoteAggiornate(testo);
+      setSalvato(true);
+      setTimeout(() => setSalvato(false), 2000);
+    } catch { /* silenzioso */ }
+    finally { setSalv(false); }
+  }
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Note reclutatore</p>
+      <textarea
+        rows={5}
+        value={testo}
+        onChange={e => { setTesto(e.target.value); setSalvato(false); }}
+        placeholder="Impressioni, osservazioni, follow-up…"
+        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-300 resize-y focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
+      />
+      <button onClick={salva} disabled={salv}
+        className={`text-xs font-semibold px-3 py-2 rounded-lg transition self-end ${
+          salvato
+            ? 'bg-teal-50 text-teal-700 border border-teal-200'
+            : 'bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-60'
+        }`}>
+        {salv ? 'Salvataggio…' : salvato ? '✓ Salvato' : 'Salva nota'}
+      </button>
+    </div>
+  );
+}
+
+// ── Pannello destro: Link ─────────────────────────────────────────────────────
+function LinksCard({ candidato }) {
+  const links = [
+    { label: 'LinkedIn', val: candidato.linkedin_url, icona: 'M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z M4 6a2 2 0 100-4 2 2 0 000 4z' },
+    { label: 'Portfolio', val: candidato.portfolio_url, icona: 'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14' },
+    { label: 'File SMB', val: candidato.file_path_smb, icona: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+  ].filter(l => l.val);
+
+  if (links.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Link & Documenti</p>
+      {links.map(l => (
+        <a key={l.label} href={l.val.startsWith('http') ? l.val : undefined}
+          target="_blank" rel="noreferrer"
+          className="flex items-center gap-2 text-sm text-teal-700 hover:text-teal-900 hover:underline py-1 truncate">
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d={l.icona}/>
+          </svg>
+          <span className="truncate">{l.label}</span>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+// ── Pannello destro: Metadata ─────────────────────────────────────────────────
+function MetadataCard({ candidato }) {
+  return (
+    <div className="flex flex-col gap-2 pt-1 border-t border-slate-100">
+      <div>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Inserito il</p>
+        <p className="text-xs text-slate-600 mt-0.5">{new Date(candidato.created_at).toLocaleString('it-IT')}</p>
+      </div>
+      <div>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aggiornato il</p>
+        <p className="text-xs text-slate-600 mt-0.5">{new Date(candidato.updated_at).toLocaleString('it-IT')}</p>
+      </div>
+    </div>
+  );
+}
+
 // ── Modale principale ─────────────────────────────────────────────────────────
-export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
+export default function DettagliModale({ candidato: candidatoIniziale, onChiudi, onAggiornato }) {
+  const [candidato, setCandidato]     = useState(candidatoIniziale);
   const [modalita, setModalita]       = useState('vista');
   const [form, setForm]               = useState({});
   const [salvataggio, setSalvataggio] = useState(false);
@@ -196,9 +385,23 @@ export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
         if (payload[k] !== undefined) payload[k] = stringToArray(payload[k]);
       }
       const aggiornato = await aggiornaAnagrafica(candidato.id, payload);
-      onAggiornato(aggiornato); setModalita('vista');
+      setCandidato(aggiornato);
+      onAggiornato(aggiornato);
+      setModalita('vista');
     } catch (err) { setErrore(err.message); }
     finally { setSalvataggio(false); }
+  }
+
+  function handleStatusChange(nuovoStato) {
+    const aggiornato = { ...candidato, status: nuovoStato };
+    setCandidato(aggiornato);
+    onAggiornato(aggiornato);
+  }
+
+  function handleNoteAggiornate(nuoveNote) {
+    const aggiornato = { ...candidato, note: nuoveNote };
+    setCandidato(aggiornato);
+    onAggiornato(aggiornato);
   }
 
   return (
@@ -206,22 +409,22 @@ export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
       style={{ background: 'rgba(2,6,23,0.65)', backdropFilter: 'blur(6px)' }}
       onClick={e => e.target === e.currentTarget && onChiudi()}>
 
-      <div className="bg-slate-50 rounded-3xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden"
+      <div className="bg-slate-50 rounded-3xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden"
         style={{ boxShadow: '0 40px 80px -16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)' }}>
 
         {/* ── Header ── */}
-        <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 px-10 pt-10 pb-8 shrink-0">
+        <div className="bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900 px-9 pt-9 pb-7 shrink-0 relative">
 
           {/* Icone angolo */}
-          <div className="absolute top-5 right-5 flex items-center gap-1">
+          <div className="absolute top-4 right-4 flex items-center gap-1">
             <button onClick={esporta} title="Esporta JSON"
-              className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:text-white hover:bg-white/10 transition">
+              className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 8l-3-3m3 3l3-3"/>
               </svg>
             </button>
             <button onClick={() => inputImportRef.current?.click()} title="Importa JSON"
-              className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:text-white hover:bg-white/10 transition">
+              className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12l-3 3m3-3l3 3"/>
               </svg>
@@ -229,7 +432,7 @@ export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
             <input ref={inputImportRef} type="file" accept=".json" className="hidden" onChange={onFileImport} />
             <div className="w-px h-5 bg-white/10 mx-1" />
             <button onClick={onChiudi}
-              className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:text-white hover:bg-white/10 transition">
+              className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
               </svg>
@@ -237,25 +440,25 @@ export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
           </div>
 
           {/* Identità */}
-          <div className="flex items-center gap-6 pr-36">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0 shadow-lg">
-              <span className="text-white text-3xl font-extrabold tracking-tight">{iniziali(candidato)}</span>
+          <div className="flex items-center gap-5 pr-36">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shrink-0 shadow-lg">
+              <span className="text-white text-2xl font-extrabold tracking-tight">{iniziali(candidato)}</span>
             </div>
             <div className="min-w-0">
-              <h2 className="text-3xl font-extrabold text-white leading-tight">
+              <h2 className="text-2xl font-extrabold text-white leading-tight">
                 {candidato.first_name} {candidato.last_name}
               </h2>
-              <p className="text-slate-400 text-base mt-1.5">{candidato.current_role || 'Ruolo non specificato'}</p>
+              <p className="text-teal-200 text-sm mt-1">{candidato.current_role || 'Ruolo non specificato'}</p>
             </div>
           </div>
 
           {/* Barra stato + azioni */}
-          <div className="flex items-center justify-between mt-7 pt-6 border-t border-white/10">
-            {candidato.status ? <StatusBadge status={candidato.status} /> : <span />}
+          <div className="flex items-center justify-between mt-6 pt-5 border-t border-white/10">
+            <div />
             <div className="flex items-center gap-3">
               {modalita === 'vista' ? (
                 <button onClick={avviaModifica}
-                  className="flex items-center gap-2 text-sm font-bold bg-white text-slate-800 px-5 py-2.5 rounded-xl hover:bg-blue-50 transition shadow">
+                  className="flex items-center gap-2 text-sm font-bold bg-white text-slate-800 px-4 py-2 rounded-xl hover:bg-teal-50 transition shadow">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-2a2 2 0 01.586-1.414z"/>
                   </svg>
@@ -264,12 +467,11 @@ export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
               ) : (
                 <>
                   <button onClick={() => { setModalita('vista'); setErrore(null); }} disabled={salvataggio}
-                    className="text-sm font-semibold text-slate-400 hover:text-white px-5 py-2.5 rounded-xl hover:bg-white/10 transition">
+                    className="text-sm font-semibold text-slate-300 hover:text-white px-4 py-2 rounded-xl hover:bg-white/10 transition">
                     Annulla
                   </button>
                   <button onClick={salva} disabled={salvataggio}
-                    className="flex items-center gap-2 text-sm font-bold text-white px-5 py-2.5 rounded-xl transition shadow disabled:opacity-60"
-                    style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)' }}>
+                    className="flex items-center gap-2 text-sm font-bold text-white px-4 py-2 rounded-xl transition shadow disabled:opacity-60 bg-teal-600 hover:bg-teal-500">
                     {salvataggio
                       ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Salvataggio…</>
                       : '✓ Salva modifiche'}
@@ -282,128 +484,80 @@ export default function DettagliModale({ candidato, onChiudi, onAggiornato }) {
 
         {/* Errore */}
         {errore && (
-          <div className="mx-8 mt-5 px-5 py-4 bg-red-50 border-2 border-red-200 rounded-2xl text-sm font-medium text-red-700 shrink-0">
+          <div className="mx-6 mt-4 px-5 py-3.5 bg-red-50 border-2 border-red-200 rounded-2xl text-sm font-medium text-red-700 shrink-0">
             ⚠️ {errore}
           </div>
         )}
 
-        {/* ── Corpo scrollabile ── */}
-        <div className="overflow-y-auto flex-1 bg-slate-50">
-          {modalita === 'vista' ? (
+        {/* ── Corpo due colonne ── */}
+        <div className="flex flex-1 overflow-hidden lg:flex-row flex-col">
 
-            <div className="px-8 py-8 flex flex-col gap-4">
-              {SEZIONI_VISTA.map(sezione => {
-                const campiPresenti = sezione.campi.filter(k => {
-                  const v = candidato[k];
-                  if (v === null || v === undefined || v === '') return false;
-                  const p = parseJson(v);
-                  return Array.isArray(p) ? p.length > 0 : true;
-                });
-                if (campiPresenti.length === 0) return null;
-                const isSintesi = sezione.id === 'sintesi';
+          {/* Colonna sinistra — profilo */}
+          <div className="flex-1 overflow-y-auto px-6 py-6 bg-slate-50 flex flex-col gap-3">
+            {modalita === 'vista' ? (
+              <>
+                <AiSintesiBox testo={candidato.executive_summary} />
 
-                return (
-                  <div key={sezione.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    {/* Intestazione sezione con accent colorato */}
-                    <div className="flex items-center gap-3 px-7 py-5 border-b border-slate-100">
-                      <div className={`w-1.5 h-6 rounded-full ${sezione.accent}`} />
-                      <h3 className="text-sm font-extrabold text-slate-700 uppercase tracking-widest">
-                        {sezione.titolo}
-                      </h3>
-                    </div>
-                    <div className="px-7 py-6">
-                      {isSintesi ? (
-                        <p className="text-base text-slate-700 leading-loose whitespace-pre-wrap">
-                          {candidato.executive_summary}
-                        </p>
-                      ) : (
-                        <dl className="grid grid-cols-2 gap-x-12 gap-y-7">
-                          {campiPresenti.map(k => (
-                            <CampoVista key={k} chiave={k} valore={candidato[k]} />
-                          ))}
-                        </dl>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                {SEZIONI_VISTA.map(sezione => {
+                  const campiPresenti = sezione.campi.filter(k => {
+                    const v = candidato[k];
+                    if (v === null || v === undefined || v === '') return false;
+                    const p = parseJson(v);
+                    return Array.isArray(p) ? p.length > 0 : true;
+                  });
+                  if (campiPresenti.length === 0) return null;
+                  return (
+                    <Sezione key={sezione.id} titolo={sezione.titolo} accent={sezione.accent}>
+                      <dl className="grid grid-cols-2 gap-x-8 gap-y-5">
+                        {campiPresenti.map(k => <CampoVista key={k} chiave={k} valore={candidato[k]} />)}
+                      </dl>
+                    </Sezione>
+                  );
+                })}
 
-              {/* Dati extra n8n */}
-              {Object.keys(campiExtra).length > 0 && (
-                <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 shadow-sm overflow-hidden">
-                  <div className="flex items-center gap-3 px-7 py-5 border-b border-dashed border-slate-200">
-                    <div className="w-1.5 h-6 rounded-full bg-slate-300" />
-                    <h3 className="text-sm font-extrabold text-slate-500 uppercase tracking-widest">Dati aggiuntivi (n8n)</h3>
-                  </div>
-                  <div className="px-7 py-6">
-                    <dl className="grid grid-cols-2 gap-x-12 gap-y-7">
-                      {Object.entries(campiExtra).map(([k, v]) => (
-                        <CampoVista key={k} chiave={k} valore={v} />
-                      ))}
+                <SkillsSection candidato={candidato} />
+
+                {/* Dati extra n8n */}
+                {Object.keys(campiExtra).length > 0 && (
+                  <Sezione titolo="Dati aggiuntivi (n8n)" accent="bg-slate-300" defaultOpen={false}>
+                    <dl className="grid grid-cols-2 gap-x-8 gap-y-5">
+                      {Object.entries(campiExtra).map(([k, v]) => <CampoVista key={k} chiave={k} valore={v} />)}
                     </dl>
+                  </Sezione>
+                )}
+              </>
+            ) : (
+              /* Form modifica */
+              <>
+                {SEZIONI_FORM.map(sezione => (
+                  <div key={sezione.titolo} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100">
+                      <h3 className="text-xs font-extrabold text-slate-600 uppercase tracking-widest">{sezione.titolo}</h3>
+                    </div>
+                    <div className="px-6 py-5 grid grid-cols-2 gap-x-6 gap-y-5">
+                      {sezione.campi.filter(k => k in form).map(k => (
+                        <CampoModifica key={k} chiave={k} valore={form[k]} onChange={aggiornaForm} />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                ))}
+              </>
+            )}
+          </div>
 
-              {/* Note */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="flex items-center gap-3 px-7 py-5 border-b border-slate-100">
-                  <div className="w-1.5 h-6 rounded-full bg-yellow-400" />
-                  <h3 className="text-sm font-extrabold text-slate-700 uppercase tracking-widest">Note</h3>
-                </div>
-                <div className="px-7 py-6">
-                  {candidato.note
-                    ? <p className="text-base text-slate-700 leading-loose whitespace-pre-wrap">{candidato.note}</p>
-                    : <p className="text-base text-slate-300 italic">Nessuna nota aggiunta</p>
-                  }
-                </div>
-              </div>
-
-              {/* Timestamp */}
-              <div className="flex gap-10 px-2 pb-2">
-                <div>
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">Inserito il</p>
-                  <p className="text-base text-slate-600 mt-1.5">{new Date(candidato.created_at).toLocaleString('it-IT')}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">Aggiornato il</p>
-                  <p className="text-base text-slate-600 mt-1.5">{new Date(candidato.updated_at).toLocaleString('it-IT')}</p>
-                </div>
-              </div>
-            </div>
-
-          ) : (
-
-            /* ── Form modifica ── */
-            <div className="px-8 py-8 flex flex-col gap-4">
-              {SEZIONI_FORM.map(sezione => (
-                <div key={sezione.titolo} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="px-7 py-5 border-b border-slate-100">
-                    <h3 className="text-sm font-extrabold text-slate-600 uppercase tracking-widest">{sezione.titolo}</h3>
-                  </div>
-                  <div className="px-7 py-6 grid grid-cols-2 gap-x-8 gap-y-6">
-                    {sezione.campi.filter(k => k in form).map(k => (
-                      <CampoModifica key={k} chiave={k} valore={form[k]} onChange={aggiornaForm} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              {/* Note */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-7 py-5 border-b border-slate-100">
-                  <h3 className="text-sm font-extrabold text-slate-600 uppercase tracking-widest">Note</h3>
-                </div>
-                <div className="px-7 py-6">
-                  <textarea rows={5} value={form.note ?? ''} onChange={e => aggiornaForm('note', e.target.value)}
-                    placeholder="Aggiungi note, osservazioni, impressioni sul candidato…"
-                    className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-base text-slate-800 placeholder-slate-300 resize-y focus:outline-none focus:border-indigo-500 transition"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Colonna destra — pannello azioni */}
+          <div className="w-full lg:w-72 shrink-0 border-t lg:border-t-0 lg:border-l border-slate-200 bg-white overflow-y-auto px-5 py-5 flex flex-col gap-5">
+            <StatusCard candidato={candidato} onStatusChange={handleStatusChange} />
+            <NoteReclutatore
+              nota={candidato.note}
+              candidatoId={candidato.id}
+              onNoteAggiornate={handleNoteAggiornate}
+            />
+            <LinksCard candidato={candidato} />
+            <MetadataCard candidato={candidato} />
+          </div>
         </div>
+
       </div>
     </div>
   );

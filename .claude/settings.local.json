@@ -3,7 +3,10 @@
     "allow": [
       "Bash(Get-ChildItem *)",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Thurill\\\\Documents\\\\Claude\\\\Projects\\\\HR-BMA\\\\HR-BMA\\\\ats-project\\\\backend\" -Recurse | Where-Object {-not $_.PSIsContainer} | Select-Object FullName)",
-      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Thurill\\\\Documents\\\\Claude\\\\Projects\\\\HR-BMA\\\\HR-BMA\\\\ats-project\\\\frontend\\\\src\" -Recurse | Where-Object {-not $_.PSIsContainer} | Select-Object FullName)"
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Thurill\\\\Documents\\\\Claude\\\\Projects\\\\HR-BMA\\\\HR-BMA\\\\ats-project\\\\frontend\\\\src\" -Recurse | Where-Object {-not $_.PSIsContainer} | Select-Object FullName)",
+      "Bash(Select-Object FullName)",
+      "Bash(npm install *)",
+      "Bash(npm run *)"
     ]
   }
 }
